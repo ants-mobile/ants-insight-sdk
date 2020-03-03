@@ -447,12 +447,12 @@ public class Insights implements AdListener {
 
     public static void setInsightsConfig(@NonNull Context mContext, @NonNull String portalId, @NonNull String propertyId) {
         if (TextUtils.isEmpty(InsightSharedPref.getPortalId(mContext))
-                || TextUtils.isEmpty(InsightSharedPref.getPropertyId(mContext)){
-        InsightSharedPref.setPortalId(mContext, portalId);
-        InsightSharedPref.setPropertyId(mContext, propertyId);
-    }
+                || TextUtils.isEmpty(InsightSharedPref.getPropertyId(mContext))) {
+            InsightSharedPref.setPortalId(mContext, portalId);
+            InsightSharedPref.setPropertyId(mContext, propertyId);
+        }
 
-}
+    }
 
     private boolean hasPermissions(Context context, String... permissions) {
         if (context != null && permissions != null) {
