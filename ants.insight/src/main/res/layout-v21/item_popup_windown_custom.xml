@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/tools"
+    android:id="@+id/view_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="8dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:divider="@android:color/transparent"
+    android:dividerHeight="0.0px"
+    android:elevation="8dp"
+    android:orientation="vertical"
+    card_view:cardElevation="10dp"
+    card_view:cardPreventCornerOverlap="false">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <WebView
+            android:id="@+id/web_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:gravity="center" />
+
+        <ImageView
+            android:id="@+id/btn_close"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@id/web_view"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@string/btn_close"
+            android:src="@drawable/icon_close" />
+    </RelativeLayout>
+
+</androidx.cardview.widget.CardView>

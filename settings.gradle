@@ -1,0 +1,2 @@
+include ':app', ':ants.insight'
+rootProject.name='Insight-v2'

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ants.insights</string>
+    <string name="insight_api">%s %s %s %s</string>
+    <string name="btn_close">Close</string>
+</resources>
