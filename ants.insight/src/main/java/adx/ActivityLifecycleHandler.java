@@ -5,7 +5,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
-import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
@@ -19,10 +18,7 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import ants.mobile.ants_insight.Constants.ActionEvent;
-import ants.mobile.ants_insight.InsightSharedPref;
-import ants.mobile.ants_insight.Insights;
-import ants.mobile.ants_insight.Model.InsightDataRequest;
+import ants.mobile.ants_insight.BuildConfig;
 
 class ActivityLifecycleHandler {
 
@@ -37,13 +33,13 @@ class ActivityLifecycleHandler {
     }
 
     private static Map<String, ActivityAvailableListener> sActivityAvailableListeners = new ConcurrentHashMap<>();
-    private static Map<String, OSSystemConditionController.OSSystemConditionObserver> sSystemConditionObservers = new ConcurrentHashMap<>();
+    private static Map<String, ISSystemConditionController.OSSystemConditionObserver> sSystemConditionObservers = new ConcurrentHashMap<>();
     private static Map<String, KeyboardListener> sKeyboardListeners = new ConcurrentHashMap<>();
     static FocusHandlerThread focusHandlerThread = new FocusHandlerThread();
     @SuppressLint("StaticFieldLeak")
     static Activity curActivity;
 
-    static void setSystemConditionObserver(String key, OSSystemConditionController.OSSystemConditionObserver systemConditionObserver) {
+    static void setSystemConditionObserver(String key, ISSystemConditionController.OSSystemConditionObserver systemConditionObserver) {
         if (curActivity != null) {
             ViewTreeObserver treeObserver = curActivity.getWindow().getDecorView().getViewTreeObserver();
             KeyboardListener keyboardListener = new KeyboardListener(systemConditionObserver, key);
@@ -76,7 +72,7 @@ class ActivityLifecycleHandler {
 
         try {
             ViewTreeObserver treeObserver = curActivity.getWindow().getDecorView().getViewTreeObserver();
-            for (Map.Entry<String, OSSystemConditionController.OSSystemConditionObserver> entry : sSystemConditionObservers.entrySet()) {
+            for (Map.Entry<String, ISSystemConditionController.OSSystemConditionObserver> entry : sSystemConditionObservers.entrySet()) {
                 KeyboardListener keyboardListener = new KeyboardListener(entry.getValue(), entry.getKey());
                 treeObserver.addOnGlobalLayoutListener(keyboardListener);
                 sKeyboardListeners.put(entry.getKey(), keyboardListener);
@@ -137,12 +133,13 @@ class ActivityLifecycleHandler {
             curActivity = null;
             handleLostFocus();
         }
-
+        WebViewManager.isShowingAds = false;
         logCurActivity();
     }
 
     static private void logCurActivity() {
-        Log.d("InsightDebug", "curActivity is NOW: " + (curActivity != null ? "" + curActivity.getClass().getName() + ":" + curActivity : "null"));
+        if (BuildConfig.DEBUG)
+            Log.d("InsightDebug", "curActivity is NOW: " + (curActivity != null ? "" + curActivity.getClass().getName() + ":" + curActivity : "null"));
     }
 
     private static void logOrientationChange(int orientation) {
@@ -167,7 +164,7 @@ class ActivityLifecycleHandler {
         }
 
         ViewTreeObserver treeObserver = curActivity.getWindow().getDecorView().getViewTreeObserver();
-        for (Map.Entry<String, OSSystemConditionController.OSSystemConditionObserver> entry : sSystemConditionObservers.entrySet()) {
+        for (Map.Entry<String, ISSystemConditionController.OSSystemConditionObserver> entry : sSystemConditionObservers.entrySet()) {
             KeyboardListener keyboardListener = new KeyboardListener(entry.getValue(), entry.getKey());
             treeObserver.addOnGlobalLayoutListener(keyboardListener);
             sKeyboardListeners.put(entry.getKey(), keyboardListener);
@@ -238,10 +235,10 @@ class ActivityLifecycleHandler {
 
     private static class KeyboardListener implements ViewTreeObserver.OnGlobalLayoutListener {
 
-        private final OSSystemConditionController.OSSystemConditionObserver observer;
+        private final ISSystemConditionController.OSSystemConditionObserver observer;
         private final String key;
 
-        private KeyboardListener(OSSystemConditionController.OSSystemConditionObserver observer, String key) {
+        private KeyboardListener(ISSystemConditionController.OSSystemConditionObserver observer, String key) {
             this.observer = observer;
             this.key = key;
         }

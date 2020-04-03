@@ -2,4 +2,13 @@
     <string name="app_name">ants.insights</string>
     <string name="insight_api">%s %s %s %s</string>
     <string name="btn_close">Close</string>
+    <string name="property_id">property_id</string>
+
+    <array name="user_identify">
+        <item>Albania
+            <bool name="hash_md5">true</bool>
+        </item>
+        <item>Algeria</item>
+        <item>American Samoa</item>
+    </array>
 </resources>

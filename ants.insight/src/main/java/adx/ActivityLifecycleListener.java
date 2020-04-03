@@ -75,11 +75,6 @@ public class ActivityLifecycleListener implements Application.ActivityLifecycleC
 
     @Override
     public void onActivityDestroyed(Activity activity) {
-        WebViewManager.setIsShowingAds(false);
         ActivityLifecycleHandler.onActivityDestroyed(activity);
-        if (activity != null) {
-            Insights insights = new Insights(activity);
-            insights.unregisterReceiver();
-        }
     }
 }

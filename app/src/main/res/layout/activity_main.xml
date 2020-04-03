@@ -1,20 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
+    android:orientation="vertical"
     android:theme="@style/AppTheme.NoActionBar"
-    tools:context=".MainActivity">
+    tools:context="ants.mobile.insight.MainActivity">
 
     <TextView
-        android:id="@+id/tvContent"
+        android:id="@+id/btn_go_to_home_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="This is content"
-        android:layout_marginTop="40dp"
         android:layout_gravity="center"
-        android:gravity="center"/>
+        android:layout_marginTop="100dp"
+        android:gravity="center"
+        android:text="Go to HomeActivity" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/btn_show_ads"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:text="Show ads" />
+
+</RelativeLayout>

@@ -1,0 +1,24 @@
+<resources>
+    <array name="user_identify">
+        <item>
+            <key>Albania</key>
+            <bool name="hash_md5">true</bool>
+        </item>
+        <item>
+            <countryName>Algeria</countryName>
+            <bool name="hash_md5">false</bool>
+        </item>
+        <item>
+            <countryName>American Samoa</countryName>
+            <bool name="hash_md5">false</bool>
+        </item>
+        <item>
+            <countryName>India</countryName>
+            <bool name="hash_md5">false</bool>
+        </item>
+        <item>
+            <countryName>South Africa</countryName>
+            <bool name="hash_md5">false</bool>
+        </item>
+    </array>
+</resources>

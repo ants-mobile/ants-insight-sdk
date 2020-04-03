@@ -2,10 +2,12 @@ package ants.mobile.ants_insight.Model;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.os.Build;
 import android.provider.Settings;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.annotation.StringDef;
 
 import org.json.JSONArray;
@@ -40,7 +42,6 @@ public class InsightDataRequest {
     private boolean isCustomizeAction = false;
     private String eventActionCustom;
     private String eventCategoryCustom;
-    private boolean isLogin = false;
     private UserItem userItem;
     private static String sections = "";
 
@@ -61,14 +62,12 @@ public class InsightDataRequest {
     }
 
     public InsightDataRequest(Context mContext) {
-        this.eventAction = eventAction;
         this.mContext = mContext;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public JSONObject getDataRequest() {
         JSONObject param = new JSONObject();
-        if (isLogin && userItem != null)
-            userItem.setLogin(true);
         try {
             param.put("uid", getUID());
             param.put("aid", getAid());
@@ -97,8 +96,8 @@ public class InsightDataRequest {
                 if (extraItem != null)
                     param.putOpt("extra", getExtraItem());
 
-                if (userItem != null && !"reset_anonymous_id".equals(getEventAction()))
-                    param.putOpt("extra", userItem.getUserInfo());
+                if (userItem != null && userItem.getUserInfo(mContext) != null && !"reset_anonymous_id".equals(getEventAction()))
+                    param.putOpt("extra", userItem.getUserInfo(mContext));
 
                 if ("reset_anonymous_id".equals(getEventAction())) {
                     AnonymousItem anonymousItem = new AnonymousItem(getUID(), getNewUID());
@@ -245,6 +244,7 @@ public class InsightDataRequest {
         return array;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private JSONArray getUser() {
         if (userItem == null)
             return null;
@@ -252,13 +252,10 @@ public class InsightDataRequest {
         userList.add(userItem);
         JSONArray array = new JSONArray();
         for (UserItem userItem : userList) {
-            array.put(userItem.getUserInfo());
+            if (userItem.getUserInfo(mContext) != null)
+                array.put(userItem.getUserInfo(mContext));
         }
         return array;
-    }
-
-    public void isLogin(boolean login) {
-        isLogin = login;
     }
 
     public UserItem getUserItem() {

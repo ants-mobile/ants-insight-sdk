@@ -39,6 +39,9 @@ dependencies {
     implementation 'io.reactivex.rxjava2:rxjava:2.2.14'
     implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.google.android.gms:play-services-location:17.0.0'
+
+    implementation 'com.crowdfire.cfalertdialog:cfalertdialog:1.1.0'
+
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'

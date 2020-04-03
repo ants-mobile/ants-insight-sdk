@@ -1,11 +1,15 @@
 package ants.mobile.ants_insight.Service;
 
+import android.content.Context;
+import android.text.TextUtils;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.concurrent.TimeUnit;
 
 import ants.mobile.ants_insight.BuildConfig;
+import ants.mobile.ants_insight.InsightSharedPref;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -17,29 +21,31 @@ public class ApiClient {
     private static volatile InsightApiDetail mInsightServiceApi = null;
     private static volatile DeliveryApiDetail mDeliveryApiDetail = null;
 
-    public static InsightApiDetail getInsightInstance() {
+    public static InsightApiDetail getInsightInstance(Context mContext) {
         if (mInsightServiceApi == null) {
-            mInsightServiceApi = createFromInsight();
+            mInsightServiceApi = createFromInsight(mContext);
         }
         return mInsightServiceApi;
     }
 
-    public static DeliveryApiDetail getDeliveryInstance() {
+    public static DeliveryApiDetail getDeliveryInstance(Context mContext) {
         if (mDeliveryApiDetail == null) {
-            mDeliveryApiDetail = createFromDelivery();
+            mDeliveryApiDetail = createFromDelivery(mContext);
         }
         return mDeliveryApiDetail;
     }
 
-    private static DeliveryApiDetail createFromDelivery() {
-        final String BASE_LC = "http://delivery.cdp.asia/";
-        Gson gson = new GsonBuilder().serializeNulls().create();
+    private static DeliveryApiDetail createFromDelivery(Context mContext) {
+        final String BASE_URL = "http://delivery.cdp.asia/";
+        String deliveryURL = InsightSharedPref.getDeliveryURL(mContext);
+
+        Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
         RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();
 
         OkHttpClient client = createHttpClient();
 
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        retrofitBuilder.baseUrl(BASE_LC);
+        retrofitBuilder.baseUrl(TextUtils.isEmpty(deliveryURL) ? BASE_URL : deliveryURL);
         retrofitBuilder.client(client);
 
         retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gson));
@@ -50,17 +56,19 @@ public class ApiClient {
         return retrofit.create(DeliveryApiDetail.class);
     }
 
-    private static InsightApiDetail createFromInsight() {
+    private static InsightApiDetail createFromInsight(Context mContext) {
 
-        final String BASE_LC = "http://a.cdp.asia/";
+        final String BASE_URL = "http://a.cdp.asia/";
+        String insightURL = InsightSharedPref.getInsightURL(mContext);
 
-        Gson gson = new GsonBuilder().serializeNulls().create();
+        Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
         RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();
 
         OkHttpClient client = createHttpClient();
 
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        retrofitBuilder.baseUrl(BASE_LC);
+        retrofitBuilder.baseUrl(TextUtils.isEmpty(insightURL) ? BASE_URL : insightURL);
+
         retrofitBuilder.client(client);
 
         retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gson));

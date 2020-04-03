@@ -1,12 +1,28 @@
 package ants.mobile.ants_insight.Model;
 
+import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
+import android.util.Log;
+
+import androidx.annotation.RequiresApi;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
+
+import adx.Utils;
+import ants.mobile.ants_insight.InsightSharedPref;
 
 public class UserItem {
     private String userName;
@@ -16,11 +32,11 @@ public class UserItem {
     private String firstName;
     private String phone;
     private String customerId;
-    private boolean isLogin;
     private String gender;
     private String birthday;
     private String avatar;
     private String userDescription;
+    private List<Other> otherList;
 
     public UserItem(String userName, String email, String address, String lastName, String firstName, String phone, String customerId,
                     String gender, String birthday, String avatar, String userDescription) {
@@ -41,25 +57,87 @@ public class UserItem {
     public UserItem() {
     }
 
-    public JSONObject getUserInfo() {
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    JSONObject getUserInfo(Context mContext) {
         JSONObject param = new JSONObject();
+
+        String data = Utils.getAssetJsonData(mContext);
+        Type type = new TypeToken<InsightConfig>() {
+        }.getType();
+        InsightConfig config = new Gson().fromJson(data, type);
+
+        if (config == null)
+            return null;
+
         try {
-            if (isLogin)
-                param.put("one_signal_id", "3c80bd93-ce53-4180-b423-8ae62b014f04");
             param.put("type", "lead");
-            param.put("id", convertStringToMD5(phone) + convertStringToMD5(email));
-            param.put("name", firstName + lastName);
-            param.put("first_name", firstName);
-            param.put("last_name", lastName);
-            param.put("phone", phone);
-            param.put("customer_id", customerId);
-            param.put("email", email);
-            param.put("birthday", birthday);
-            param.put("address", address);
+            param.put("one_signal_id", InsightSharedPref.getPushNotificationId(mContext));
+
+            if (!TextUtils.isEmpty(config.getIdentifyId().getKeyName())) {
+                switch (config.getIdentifyId().getKeyName()) {
+                    case "1":
+                        param.put("id", !config.getIdentifyId().isHashMd5() ? email : convertStringToMD5(email));
+                        break;
+                    case "2":
+                        param.put("id", !config.getIdentifyId().isHashMd5() ? phone : convertStringToMD5(phone));
+                        break;
+                    case "3":
+                        param.put("id", !config.getIdentifyId().isHashMd5() ? customerId : convertStringToMD5(customerId));
+                        break;
+                    default:
+                        param.put("id", convertStringToMD5(phone + convertStringToMD5(email)));
+                        break;
+                }
+            }
+
+            for (UserModel userModel : config.getUserModels()) {
+                if (!TextUtils.isEmpty(userModel.getKeyName())) {
+                    switch (userModel.getKeyName()) {
+                        case "name":
+                            param.put("name", !userModel.isHashMd5() ? firstName + lastName : convertStringToMD5(firstName) + convertStringToMD5(lastName));
+                            break;
+                        case "first_name":
+                            param.put("first_name", !userModel.isHashMd5() ? firstName : convertStringToMD5(firstName));
+                            break;
+                        case "last_name":
+                            param.put("last_name", !userModel.isHashMd5() ? lastName : convertStringToMD5(lastName));
+                            break;
+                        case "phone":
+                            param.put("phone", !userModel.isHashMd5() ? phone : convertStringToMD5(phone));
+                            break;
+                        case "customer_id":
+                            param.put("customer_id", !userModel.isHashMd5() ? customerId : convertStringToMD5(customerId));
+                            break;
+                        case "email":
+                            param.put("email", !userModel.isHashMd5() ? customerId : convertStringToMD5(customerId));
+                            break;
+                        case "birthday":
+                            param.put("birthday", !userModel.isHashMd5() ? birthday : convertStringToMD5(birthday));
+                            break;
+                        case "address":
+                            param.put("address", !userModel.isHashMd5() ? address : convertStringToMD5(address));
+                            break;
+                        case "username":
+                            param.put("username", !userModel.isHashMd5() ? userName : convertStringToMD5(userName));
+                            break;
+                        case "gender":
+                            param.put("gender", !userModel.isHashMd5() ? gender : convertStringToMD5(gender));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
             param.put("avatar", avatar);
-            param.put("username", userName);
             param.put("description", userDescription);
-            param.put("gender", gender);
+
+            if (otherList != null && otherList.size() > 0) {
+                for (Other other : otherList) {
+                    param.put(other.key, other.value);
+                }
+            }
+
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -78,6 +156,10 @@ public class UserItem {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public void setFirstName(String firstName) {
@@ -100,25 +182,27 @@ public class UserItem {
         this.customerId = customerId;
     }
 
+    public List<Other> getOtherList() {
+        return otherList;
+    }
+
+    public void setOtherList(List<Other> otherList) {
+        this.otherList = otherList;
+    }
+
     private static String convertStringToMD5(final String input) {
         if (!TextUtils.isEmpty(input)) {
-            final String MD5 = "MD5";
             try {
                 // Create MD5 Hash
-                MessageDigest digest = java.security.MessageDigest.getInstance(MD5);
+                MessageDigest digest = java.security.MessageDigest.getInstance("MD5");
                 digest.update(input.getBytes());
                 byte[] messageDigest = digest.digest();
 
                 // Create Hex String
                 StringBuilder hexString = new StringBuilder();
-                for (byte aMessageDigest : messageDigest) {
-                    StringBuilder h = new StringBuilder(Integer.toHexString(0xFF & aMessageDigest));
-                    while (h.length() < 2)
-                        h.insert(0, "0");
-                    hexString.append(h);
-                }
-                return hexString.toString();
+                for (byte b : messageDigest) hexString.append(Integer.toHexString(0xFF & b));
 
+                return hexString.toString();
             } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
@@ -127,7 +211,4 @@ public class UserItem {
             return "";
     }
 
-    public void setLogin(boolean login) {
-        isLogin = login;
-    }
 }

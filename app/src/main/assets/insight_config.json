@@ -1,0 +1,29 @@
+{
+  "user_identify": [
+    {
+      "key": "name",
+      "hash_md5": true
+    },
+    {
+      "key": "email",
+      "hash_md5": true
+    },
+    {
+      "key": "username",
+      "hash_md5": true
+    },
+    {
+      "key": "phone",
+      "hash_md5": true
+    }
+  ],
+  "identify_id": {
+    "key": "1",
+    "hash_md5": true
+  },
+  "portal_id": "564244922",
+  "property_id": "564269300",
+  "insight_url": "http://a.cdp.asia/",
+  "delivery_url": "http://delivery.cdp.asia/",
+  "is_delivery": true
+}

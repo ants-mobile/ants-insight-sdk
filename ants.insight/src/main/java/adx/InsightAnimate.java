@@ -37,12 +37,7 @@ public class InsightAnimate {
                 colorStart,
                 colorEnd);
         backgroundAnimation.setEvaluator(new ArgbEvaluator());
-        backgroundAnimation.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                view.setBackgroundColor((Integer) valueAnimator.getAnimatedValue());
-            }
-        });
+        backgroundAnimation.addUpdateListener(valueAnimator -> view.setBackgroundColor((Integer) valueAnimator.getAnimatedValue()));
         if (animCallback != null)
             backgroundAnimation.addListener(animCallback);
 

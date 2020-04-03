@@ -19,8 +19,6 @@ class DraggableRelativeLayout extends RelativeLayout {
 
     private static final int MARGIN_PX_SIZE = dpToPx(28);
     private static final int EXTRA_PX_DISMISS = dpToPx(64);
-    private Context context;
-
     interface DraggableListener {
         // Callback for dismissing the MessageView
         void onDismiss();
@@ -56,7 +54,6 @@ class DraggableRelativeLayout extends RelativeLayout {
 
     public DraggableRelativeLayout(Context context) {
         super(context);
-        this.context = context;
         setClipChildren(false);
         createDragHelper();
     }
@@ -192,6 +189,6 @@ class DraggableRelativeLayout extends RelativeLayout {
         dismissing = true;
         mDragHelper.smoothSlideViewTo(this, getLeft(), params.offScreenYPos);
         ViewCompat.postInvalidateOnAnimation(this);
-        WebViewManager.setIsShowingAds(false);
+//        WebViewManager.setIsShowingAds(false);
     }
 }

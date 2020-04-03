@@ -10,7 +10,6 @@ public class InsightSharedPref {
 
     private static final String INSIGHT_SHARED_PREF = "insight_shared_pref";
     private static final String KEY_PORTAL_ID = "portal_id";
-    private static final String KEY_SERVER_URL = "server_url";
     private static final String KEY_PROPERTY_ID = "prop_id";
     private static final String KEY_LATITUDE = "latitude";
     private static final String KEY_LONGITUDE = "longitude";
@@ -19,6 +18,9 @@ public class InsightSharedPref {
     private static final String UID = "uid";
     private static final String INDEX_FILE_PATH = "path";
     private static final String ADS_IS_SHOWING = "is_showing";
+    private static final String INSIGHT_URL = "insight_url";
+    private static final String DELIVERY_URL = "delivery_url";
+    private static final String IS_DELIVERY = "is_delivery";
 
     private static SharedPreferences.Editor getSharedPreferenceEditor(Context context) {
         return context.getSharedPreferences(INSIGHT_SHARED_PREF, MODE_PRIVATE).edit();
@@ -44,12 +46,20 @@ public class InsightSharedPref {
         return getSharedPreference(mContext).getString(KEY_PORTAL_ID, "");
     }
 
-    public static void setServerUrl(Context mContext, String domain) {
-        getSharedPreferenceEditor(mContext).putString(KEY_SERVER_URL, domain).apply();
+    public static void setInsightURL(Context mContext, String domain) {
+        getSharedPreferenceEditor(mContext).putString(INSIGHT_URL, domain).apply();
     }
 
-    public static String getServerUrl(Context mContext) {
-        return getSharedPreference(mContext).getString(KEY_SERVER_URL, "");
+    public static String getInsightURL(Context mContext) {
+        return getSharedPreference(mContext).getString(INSIGHT_URL, null);
+    }
+
+    public static void setDeliveryURL(Context mContext, String domain) {
+        getSharedPreferenceEditor(mContext).putString(DELIVERY_URL, domain).apply();
+    }
+
+    public static String getDeliveryURL(Context mContext) {
+        return getSharedPreference(mContext).getString(DELIVERY_URL, null);
     }
 
     static void setPropertyId(Context mContext, String propertyId) {
@@ -97,11 +107,12 @@ public class InsightSharedPref {
         return getSharedPreference(context).getString(INDEX_FILE_PATH, "");
     }
 
-    public static void adsIsShowing(Context context, Boolean isShowing) {
-        getSharedPreferenceEditor(context).putBoolean(ADS_IS_SHOWING, isShowing).apply();
+    static void setIsDelivery(Context context, Boolean isDelivery) {
+        getSharedPreferenceEditor(context).putBoolean(IS_DELIVERY, isDelivery).apply();
     }
 
-    static boolean adsIsShowing(Context context) {
-        return getSharedPreference(context).getBoolean(ADS_IS_SHOWING, false);
+    static boolean getIsDelivery(Context context) {
+        return getSharedPreference(context).getBoolean(IS_DELIVERY, true);
     }
+
 }

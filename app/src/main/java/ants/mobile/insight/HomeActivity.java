@@ -1,32 +1,28 @@
 package ants.mobile.insight;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.TextView;
 
 
+import androidx.annotation.RequiresApi;
+
 import com.google.gson.JsonObject;
 
+import ants.mobile.ants_insight.Constants.ActionEvent;
 import ants.mobile.ants_insight.Insights;
+import ants.mobile.ants_insight.Model.DeliveryResponse;
 import ants.mobile.insights.R;
 
-public class HomeActivity extends Activity implements Insights.InsightsCallBackListener {
+public class HomeActivity extends Activity {
 
-    private TextView tvContent;
-
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        tvContent = findViewById(R.id.tvContent);
-    }
-
-    @Override
-    public void onSuccess(JsonObject eventResponse) {
+        setContentView(R.layout.item_popup_windown_custom);
 
     }
 
-    @Override
-    public void onError(String error) {
-
-    }
 }

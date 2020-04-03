@@ -13,14 +13,19 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
+import java.nio.charset.StandardCharsets;
 
 public class Utils {
 
@@ -177,5 +182,23 @@ public class Utils {
     static void runOnMainThreadDelayed(Runnable runnable, int delay) {
         Handler handler = new Handler(Looper.getMainLooper());
         handler.postDelayed(runnable, delay);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public static String getAssetJsonData(Context context) {
+        String json;
+        try {
+            InputStream is = context.getResources().getAssets().open("insight_config.json");
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            json = new String(buffer, StandardCharsets.UTF_8);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+        return json;
+
     }
 }
