@@ -70,6 +70,7 @@ public class Insights {
     private static final int INSIGHT_TYPE = 1;
     private static final int DELIVERY_TYPE = 2;
     private boolean isShowInAppView = true;
+    private boolean isDelivery = true;
 
     private String[] PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
@@ -96,6 +97,8 @@ public class Insights {
             int PERMISSION_ALL = 200;
             ActivityCompat.requestPermissions(Utils.getActivity(mContext), PERMISSIONS, PERMISSION_ALL);
         }
+
+        isDelivery = InsightSharedPref.getIsDelivery(mContext);
 
         CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
         currentLocation.getAndSaveLastLocation();
@@ -200,7 +203,7 @@ public class Insights {
                     });
         }
 
-        if (InsightSharedPref.getIsDelivery(mContext) && insightsValid(DELIVERY_TYPE)) {
+        if (isDelivery && insightsValid(DELIVERY_TYPE)) {
             dlvApiDetail.logDelivery(getQueryParam(DELIVERY_TYPE), paramObject)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(Schedulers.io())
@@ -210,13 +213,8 @@ public class Insights {
                             super.onNext(response);
                             //Todo: handle show ads
                             if (isShowInAppView && response.campaignStatus() && response.getCampaign() != null) {
-//                                response.getCampaign().get(0).setPositionId("top");
                                 handleShowAd(response.getCampaign().get(0));
                             }
-//                            Campaign campaign = new Campaign();
-//                            campaign.setPositionId("full_screen");
-//                            campaign.setTimeDelay("0");
-//                            handleShowAd(campaign);
                         }
                     });
         }
@@ -330,7 +328,6 @@ public class Insights {
         param.put("portal_id", InsightSharedPref.getPortalId(mContext));
         param.put("prop_id", InsightSharedPref.getPropertyId(mContext));
         param.put(type == DELIVERY_TYPE ? "format" : "resp_type", "json");
-
         return param;
     }
 
@@ -343,32 +340,17 @@ public class Insights {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void resetAnonymousId() {
-
+        ContextModel contextModel = new ContextModel(mContext);
         InsightDataRequest param = new InsightDataRequest(mContext);
+        param.setContextModel(contextModel);
         param.setEventCustom("reset_anonymous_id", "user");
         if (!Anonymous.getInstance().isFileExists()) {
             Anonymous.getInstance().saveIndexToStorageLocal(mContext, "0");
             InsightSharedPref.setUID(mContext, "0");
         }
 
-        JsonObject paramObject = (JsonObject) insightsJson.parse(param.getDataRequest().toString());
-        isApiDetail.logEvent(getQueryParam(INSIGHT_TYPE), paramObject)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe(new CustomApiCallBack<JsonObject>() {
-                    @Override
-                    public void onNext(JsonObject object) {
-                        super.onNext(object);
-                        param.updateAnonymousIndex();
-                    }
-                });
-
-        dlvApiDetail.logDelivery(getQueryParam(DELIVERY_TYPE), paramObject)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeOn(Schedulers.io())
-                .subscribe(new CustomApiCallBack<Object>() {
-                });
-
+        paramObject = (JsonObject) insightsJson.parse(param.getDataRequest().toString());
+        callApi();
 
     }
 

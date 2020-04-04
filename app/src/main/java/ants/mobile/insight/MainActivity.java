@@ -105,7 +105,7 @@ public class MainActivity extends Activity {
 
 
         insights.logEvent(ActionEvent.CART_VIEW_ACTION, productList, extraItem, dimensionList);
-        tvShowAds.setOnClickListener(v -> insights.logEvent(ActionEvent.CART_VIEW_ACTION, productList, extraItem, dimensionList));
+        tvShowAds.setOnClickListener(v -> insights.resetAnonymousId());
 
 
 //        WebView webView = new WebView(this);
