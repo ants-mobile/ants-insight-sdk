@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
@@ -17,7 +16,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 
 import adx.Utils;
-import ants.mobile.ants_insight.InsightSharedPref;
+import ants.mobile.ants_insight.Constants.Constants;
 
 public class Anonymous {
 
@@ -55,7 +54,7 @@ public class Anonymous {
         if (!indexFile.exists()) {
             try {
                 indexFile.createNewFile();
-                InsightSharedPref.setIndexFilePath(mContext, indexFile.getPath());
+                Utils.savePreference(mContext, Constants.INDEX_FILE_PATH, indexFile.getPath());
             } catch (IOException e) {
                 e.printStackTrace();
             }

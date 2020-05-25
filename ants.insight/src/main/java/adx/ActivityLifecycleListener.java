@@ -9,11 +9,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import ants.mobile.ants_insight.Constants.ActionEvent;
-import ants.mobile.ants_insight.InsightSharedPref;
-import ants.mobile.ants_insight.Insights;
-import ants.mobile.ants_insight.Model.InsightDataRequest;
-
 public class ActivityLifecycleListener implements Application.ActivityLifecycleCallbacks {
     @Nullable
     private static ActivityLifecycleListener instance;

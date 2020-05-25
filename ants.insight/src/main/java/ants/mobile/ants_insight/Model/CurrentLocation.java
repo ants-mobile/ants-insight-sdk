@@ -11,7 +11,6 @@ import android.location.LocationManager;
 import android.os.Looper;
 import android.provider.Settings;
 
-import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -19,10 +18,9 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 
-import ants.mobile.ants_insight.InsightSharedPref;
+import adx.Utils;
+import ants.mobile.ants_insight.Constants.Constants;
 
 public class CurrentLocation {
     private Activity activity;
@@ -67,7 +65,8 @@ public class CurrentLocation {
                             if (location == null) {
                                 requestNewLocationData();
                             } else {
-                                InsightSharedPref.saveLocation(mContext, location);
+                                Utils.savePreference(mContext, Constants.CURRENT_LONGITUDE, String.valueOf(location.getLongitude()));
+                                Utils.savePreference(mContext, Constants.CURRENT_LATITUDE, String.valueOf(location.getLatitude()));
                             }
                         }
                 );
@@ -95,14 +94,14 @@ public class CurrentLocation {
                 mLocationRequest, mLocationCallback,
                 Looper.myLooper()
         );
-
     }
 
     private LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location mLastLocation = locationResult.getLastLocation();
-            InsightSharedPref.saveLocation(mContext, mLastLocation);
+            Utils.savePreference(mContext, Constants.CURRENT_LONGITUDE, String.valueOf(mLastLocation.getLongitude()));
+            Utils.savePreference(mContext, Constants.CURRENT_LATITUDE, String.valueOf(mLastLocation.getLatitude()));
         }
     };
 

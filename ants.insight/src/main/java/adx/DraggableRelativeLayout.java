@@ -11,8 +11,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.RelativeLayout;
 
-import ants.mobile.ants_insight.InsightSharedPref;
-
 import static adx.Utils.dpToPx;
 
 class DraggableRelativeLayout extends RelativeLayout {

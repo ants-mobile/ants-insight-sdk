@@ -18,7 +18,7 @@ import android.util.DisplayMetrics;
 import android.view.WindowManager;
 import android.webkit.WebView;
 
-import com.google.gson.annotations.SerializedName;
+import androidx.multidex.BuildConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -32,8 +32,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import ants.mobile.ants_insight.BuildConfig;
-import ants.mobile.ants_insight.InsightSharedPref;
+import adx.Utils;
+
+import ants.mobile.ants_insight.Constants.Constants;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.WIFI_SERVICE;
@@ -337,8 +338,8 @@ public class ContextModel {
 
     private JSONObject getLocation() {
         JSONObject param = new JSONObject();
-        String latitude = InsightSharedPref.getLatitude(mContext);
-        String longitude = InsightSharedPref.getLongitude(mContext);
+        String latitude = Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE);
+        String longitude = Utils.getSharedPreValue(mContext, Constants.CURRENT_LONGITUDE);
         if (!TextUtils.isEmpty(latitude) || !TextUtils.isEmpty(longitude)) {
             Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
             try {

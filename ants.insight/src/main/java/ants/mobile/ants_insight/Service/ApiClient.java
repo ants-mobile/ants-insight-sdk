@@ -3,13 +3,15 @@ package ants.mobile.ants_insight.Service;
 import android.content.Context;
 import android.text.TextUtils;
 
+import androidx.multidex.BuildConfig;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.util.concurrent.TimeUnit;
 
-import ants.mobile.ants_insight.BuildConfig;
-import ants.mobile.ants_insight.InsightSharedPref;
+import adx.Utils;
+import ants.mobile.ants_insight.Constants.Constants;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -37,7 +39,7 @@ public class ApiClient {
 
     private static DeliveryApiDetail createFromDelivery(Context mContext) {
         final String BASE_URL = "http://delivery.cdp.asia/";
-        String deliveryURL = InsightSharedPref.getDeliveryURL(mContext);
+        String deliveryURL = Utils.getSharedPreValue(mContext, Constants.DELIVERY_URL);
 
         Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
         RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();
@@ -59,7 +61,7 @@ public class ApiClient {
     private static InsightApiDetail createFromInsight(Context mContext) {
 
         final String BASE_URL = "http://a.cdp.asia/";
-        String insightURL = InsightSharedPref.getInsightURL(mContext);
+        String insightURL = Utils.getSharedPreValue(mContext, Constants.INSIGHT_URL);
 
         Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
         RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();

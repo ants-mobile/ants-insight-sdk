@@ -3,7 +3,6 @@ package ants.mobile.ants_insight.Model;
 import android.content.Context;
 import android.os.Build;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.RequiresApi;
 
@@ -13,16 +12,13 @@ import com.google.gson.reflect.TypeToken;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import adx.Utils;
-import ants.mobile.ants_insight.InsightSharedPref;
+import ants.mobile.ants_insight.Constants.Constants;
 
 public class UserItem {
     private String userName;
@@ -72,7 +68,7 @@ public class UserItem {
 
         try {
             param.put("type", "lead");
-            param.put("one_signal_id", InsightSharedPref.getPushNotificationId(mContext));
+            param.put("onesignal_id", Utils.getSharedPreValue(mContext, Constants.KEY_ONE_SIGNAL_ID));
 
             if (!TextUtils.isEmpty(config.getIdentifyId().getKeyName())) {
                 switch (config.getIdentifyId().getKeyName()) {

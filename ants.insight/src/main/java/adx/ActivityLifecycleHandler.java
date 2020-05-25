@@ -10,6 +10,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
+import androidx.multidex.BuildConfig;
 
 import android.util.Log;
 import android.view.ViewTreeObserver;
@@ -18,7 +19,6 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import ants.mobile.ants_insight.BuildConfig;
 
 class ActivityLifecycleHandler {
 
@@ -35,7 +35,7 @@ class ActivityLifecycleHandler {
     private static Map<String, ActivityAvailableListener> sActivityAvailableListeners = new ConcurrentHashMap<>();
     private static Map<String, ISSystemConditionController.OSSystemConditionObserver> sSystemConditionObservers = new ConcurrentHashMap<>();
     private static Map<String, KeyboardListener> sKeyboardListeners = new ConcurrentHashMap<>();
-    static FocusHandlerThread focusHandlerThread = new FocusHandlerThread();
+    private static FocusHandlerThread focusHandlerThread = new FocusHandlerThread();
     @SuppressLint("StaticFieldLeak")
     static Activity curActivity;
 

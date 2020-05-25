@@ -27,8 +27,6 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +36,7 @@ import adx.Campaign;
 import adx.Utils;
 import adx.WebViewManager;
 import ants.mobile.ants_insight.Constants.ActionEvent;
+import ants.mobile.ants_insight.Constants.Constants;
 import ants.mobile.ants_insight.Model.Anonymous;
 import ants.mobile.ants_insight.Model.ContextModel;
 import ants.mobile.ants_insight.Model.CurrentLocation;
@@ -77,8 +76,7 @@ public class Insights {
             Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.CAMERA
-    };
+            android.Manifest.permission.CAMERA};
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public Insights(Context mContext) {
@@ -98,7 +96,7 @@ public class Insights {
             ActivityCompat.requestPermissions(Utils.getActivity(mContext), PERMISSIONS, PERMISSION_ALL);
         }
 
-        isDelivery = InsightSharedPref.getIsDelivery(mContext);
+        isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
 
         CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
         currentLocation.getAndSaveLastLocation();
@@ -108,7 +106,7 @@ public class Insights {
 
         registerNetworkReceiver();
 
-        if (InsightSharedPref.getIsFirstInstallApp(mContext)) {
+        if (Utils.getBooleanValue(mContext, Constants.FIRST_INSTALL_APP)) {
             logEvent(ActionEvent.USER_IDENTIFY_ACTION);
         }
     }
@@ -267,7 +265,7 @@ public class Insights {
             db = mInsightDatabase.getWritableDatabase();
             events = db.query("events", null, null, null, null, null, null);
             if (events.getCount() < MAXIMUM_NUMBER_OF_REQUESTS)
-                mInsightDatabase.insertData(eventData, getCurrentTime(), eventType);
+                mInsightDatabase.insertData(eventData, Utils.getCurrentTime(), eventType);
             else
                 Log.e(TAG, "db can only save up to " + MAXIMUM_NUMBER_OF_REQUESTS + " request");
         }
@@ -303,19 +301,12 @@ public class Insights {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private boolean insightsValid(int eventType) {
-
         if (!isNetworkConnectionAvailable(mContext)) {
             Log.e(TAG, "NETWORK NOT AVAILABLE");
             saveDataToDbLocal(paramObject.toString(), eventType);
             return false;
         }
-
         return true;
-    }
-
-    private static Long getCurrentTime() {
-        Date currentTime = Calendar.getInstance().getTime();
-        return currentTime.getTime();
     }
 
     public void unregisterReceiver() {
@@ -325,8 +316,8 @@ public class Insights {
 
     private Map<String, String> getQueryParam(int type) {
         Map<String, String> param = new HashMap<>();
-        param.put("portal_id", InsightSharedPref.getPortalId(mContext));
-        param.put("prop_id", InsightSharedPref.getPropertyId(mContext));
+        param.put("portal_id", Utils.getSharedPreValue(mContext, Constants.PORTAL_ID));
+        param.put("prop_id", Utils.getSharedPreValue(mContext, Constants.PORTAL_ID));
         param.put(type == DELIVERY_TYPE ? "format" : "resp_type", "json");
         return param;
     }
@@ -346,13 +337,18 @@ public class Insights {
         param.setEventCustom("reset_anonymous_id", "user");
         if (!Anonymous.getInstance().isFileExists()) {
             Anonymous.getInstance().saveIndexToStorageLocal(mContext, "0");
-            InsightSharedPref.setUID(mContext, "0");
+            Utils.savePreference(mContext, Constants.UID, "0");
         }
-
         paramObject = (JsonObject) insightsJson.parse(param.getDataRequest().toString());
         callApi();
 
     }
+
+    /***
+     *This is the function to initialize values ​​for the Insight SDK
+     * Force calling this function before using other methods.
+     * @param mContext
+     */
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static void initialization(@NonNull Context mContext) {
@@ -360,15 +356,16 @@ public class Insights {
         Type type = new TypeToken<InsightConfig>() {
         }.getType();
         InsightConfig config = new Gson().fromJson(data, type);
+
         if (config == null) {
             Log.e(TAG, "PLEASE READ THE CONFIGURATION FILE CREATION GUIDE AGAIN");
         } else {
-            InsightSharedPref.setInsightURL(mContext, config.getInsightUrl());
-            InsightSharedPref.setDeliveryURL(mContext, config.getDeliveryUrl());
-            InsightSharedPref.setIsDelivery(mContext, config.isDelivery());
+            Utils.savePreference(mContext, Constants.INSIGHT_URL, config.getInsightUrl());
+            Utils.savePreference(mContext, Constants.DELIVERY_URL, config.getDeliveryUrl());
+            Utils.savePreference(mContext, Constants.DELIVERY, config.isDelivery());
             if (!TextUtils.isEmpty(config.getPortalId()) && !TextUtils.isEmpty(config.getPropertyId())) {
-                InsightSharedPref.setPortalId(mContext, config.getPortalId());
-                InsightSharedPref.setPropertyId(mContext, config.getPropertyId());
+                Utils.savePreference(mContext, Constants.PORTAL_ID, config.getPortalId());
+                Utils.savePreference(mContext, Constants.PROPERTY_ID, config.getPropertyId());
             } else {
                 Log.e(TAG, "PLEASE CREATE PORTALID, PROPERTYID VALUE");
             }

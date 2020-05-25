@@ -25,8 +25,9 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import adx.Utils;
 import ants.mobile.ants_insight.Constants.ActionEvent;
-import ants.mobile.ants_insight.InsightSharedPref;
+import ants.mobile.ants_insight.Constants.Constants;
 
 import static ants.mobile.ants_insight.Constants.ActionEvent.USER_SIGN_IN_ACTION;
 
@@ -84,13 +85,13 @@ public class InsightDataRequest {
             else if (userItem != null)
                 param.putOpt("items", getUser());
 
-            if (InsightSharedPref.getIsFirstInstallApp(mContext)) {
+            if (Utils.getBooleanValue(mContext, Constants.FIRST_INSTALL_APP)) {
                 JSONObject extraParam = new JSONObject();
 
-                extraParam.put("onesignal_id", InsightSharedPref.getPushNotificationId(mContext));
+                extraParam.put("onesignal_id", Utils.getSharedPreValue(mContext, Constants.KEY_ONE_SIGNAL_ID));
                 param.putOpt("extra", extraParam);
 
-                InsightSharedPref.setIsFirstInstallApp(mContext, false);
+                Utils.savePreference(mContext, Constants.FIRST_INSTALL_APP, false);
 
             } else {
                 if (extraItem != null)
@@ -169,6 +170,11 @@ public class InsightDataRequest {
         }
         return eventCategory = category;
     }
+
+    /**
+     * Refresh the sectionId every 30 minutes
+     * @return sectionId
+     */
 
     private String getSectionId() {
         if (TextUtils.isEmpty(sections)) sections = getSections();

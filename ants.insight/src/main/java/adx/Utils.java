@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -18,6 +19,7 @@ import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -26,6 +28,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+
+import ants.mobile.ants_insight.Constants.Constants;
 
 public class Utils {
 
@@ -200,5 +207,59 @@ public class Utils {
         }
         return json;
 
+    }
+
+    public static void savePreference(final Context mContext, String key, String value) {
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(
+                Constants.SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE).edit();
+        editor.putString(key, value);
+        editor.apply();
+    }
+
+    public static void savePreference(final Context mContext, String key, Boolean value) {
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(
+                Constants.SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE).edit();
+        editor.putBoolean(key, value);
+        editor.apply();
+    }
+
+    public static void savePreference(final Context mContext, String key, long value) {
+        SharedPreferences.Editor editor = mContext.getSharedPreferences(
+                Constants.SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE).edit();
+        editor.putLong(key, value);
+        editor.apply();
+    }
+
+    public static void hideSoftKeyboard(Activity activity) {
+        View v = activity.getCurrentFocus();
+        if (v != null) {
+            InputMethodManager inputMethodManager = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (inputMethodManager != null) {
+                inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+            }
+            v.setFocusableInTouchMode(true);
+        }
+    }
+
+    public static String getSharedPreValue(final Context mContext, String key) {
+        SharedPreferences settings = mContext.getSharedPreferences(
+                Constants.SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE);
+        return settings.getString(key, Constants.BLANK);
+    }
+
+    public static Boolean getBooleanValue(final Context mContext, String key) {
+        SharedPreferences settings = mContext.getSharedPreferences(
+                Constants.SHARED_PREFERENCES_FILE_NAME, Context.MODE_PRIVATE);
+        return settings.getBoolean(key, true);
+    }
+
+
+    public static <T> boolean checkListIsEmpty(Collection<T> list) {
+        return list == null || list.isEmpty();
+    }
+
+    public static Long getCurrentTime() {
+        Date currentTime = Calendar.getInstance().getTime();
+        return currentTime.getTime();
     }
 }
