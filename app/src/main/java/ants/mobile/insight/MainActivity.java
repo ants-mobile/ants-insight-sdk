@@ -19,6 +19,7 @@ import java.util.List;
 
 import ants.mobile.ants_insight.Constants.ActionEvent;
 import ants.mobile.ants_insight.Insights;
+import ants.mobile.ants_insight.Model.CurrentLocation;
 import ants.mobile.ants_insight.Model.Dimension;
 import ants.mobile.ants_insight.Model.ExtraItem;
 import ants.mobile.ants_insight.Model.Other;

@@ -3,7 +3,6 @@ package adx;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -84,7 +83,7 @@ class ActivityLifecycleHandler {
 
     static void onConfigurationChanged(Configuration newConfig) {
         // If Activity contains the configChanges orientation flag, re-create the view this way
-        if (curActivity != null && Utils.hasConfigChangeFlag(curActivity, ActivityInfo.CONFIG_ORIENTATION)) {
+        if (curActivity != null && Utils.hasConfigChangeFlag(curActivity)) {
             logOrientationChange(newConfig.orientation);
             onOrientationChanged();
         }

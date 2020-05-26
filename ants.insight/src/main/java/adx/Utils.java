@@ -14,7 +14,6 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowInsets;
@@ -75,18 +74,22 @@ public class Utils {
     }
 
     public static Activity getActivity(Context context) {
-        if (context == null) return null;
-        if (context instanceof Activity) return (Activity) context;
-        if (context instanceof ContextWrapper)
+        if (context == null) {
+            return null;
+        } else if ((context instanceof Activity)) {
+            return (Activity) context;
+        } else if (context instanceof ContextWrapper) {
             return getActivity(((ContextWrapper) context).getBaseContext());
+        }
+
         return null;
     }
 
-    static boolean hasConfigChangeFlag(Activity activity, int configChangeFlag) {
+    static boolean hasConfigChangeFlag(Activity activity) {
         boolean hasFlag = false;
         try {
             int configChanges = activity.getPackageManager().getActivityInfo(activity.getComponentName(), 0).configChanges;
-            int flagInt = configChanges & configChangeFlag;
+            int flagInt = configChanges & android.content.pm.ActivityInfo.CONFIG_ORIENTATION;
             hasFlag = flagInt != 0;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();

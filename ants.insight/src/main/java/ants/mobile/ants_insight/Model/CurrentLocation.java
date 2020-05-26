@@ -28,9 +28,11 @@ public class CurrentLocation {
     private Context mContext;
 
     public CurrentLocation(Activity activity) {
-        this.mContext = activity.getApplicationContext();
-        this.activity = activity;
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        if (activity != null) {
+            this.mContext = activity.getApplicationContext();
+            this.activity = activity;
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        }
     }
 
     private boolean checkPermissions() {
@@ -71,7 +73,6 @@ public class CurrentLocation {
                         }
                 );
             } else {
-
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
                 activity.startActivity(intent);
             }
