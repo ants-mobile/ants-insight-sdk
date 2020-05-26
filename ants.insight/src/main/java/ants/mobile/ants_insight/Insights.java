@@ -99,7 +99,7 @@ public class Insights {
 
         isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
 
-        if (!TextUtils.isEmpty(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE)) || !""
+        if (TextUtils.isEmpty(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE)) || ""
                 .equals(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE))) {
             CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
             currentLocation.getAndSaveLastLocation();
