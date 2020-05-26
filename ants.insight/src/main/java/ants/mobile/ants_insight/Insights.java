@@ -99,8 +99,10 @@ public class Insights {
 
         isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
 
-        CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
-        currentLocation.getAndSaveLastLocation();
+        if (!TextUtils.isEmpty(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE))) {
+            CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
+            currentLocation.getAndSaveLastLocation();
+        }
 
         isApiDetail = ApiClient.getInsightInstance(mContext);
         dlvApiDetail = ApiClient.getDeliveryInstance(mContext);
