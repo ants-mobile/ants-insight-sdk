@@ -47,7 +47,7 @@ public class ActionEvent {
 
     public static final String ADD_WISH = "add_wish_list";
     public static final String ADD_COMPARE = "add_compare";
-    public static final String VIEW_WISH_LIST = "add_compare";
+    public static final String VIEW_WISH_LIST = "view_wish_list";
     public static final String VIEW_COMPARE_LIST = "view_compare_list";
     public static final String IMPRESSION_ACTION = "impression";
     public static final String VIEWABLE_ACTION = "view";
