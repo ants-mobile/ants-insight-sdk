@@ -5,47 +5,25 @@ import androidx.annotation.RequiresApi;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
-import android.webkit.WebView;
-import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 import ants.mobile.ants_insight.Constants.ActionEvent;
 import ants.mobile.ants_insight.Insights;
-import ants.mobile.ants_insight.Model.DeliveryResponse;
 import ants.mobile.ants_insight.Model.Dimension;
 import ants.mobile.ants_insight.Model.ExtraItem;
-import ants.mobile.ants_insight.Model.InsightConfig;
 import ants.mobile.ants_insight.Model.Other;
 import ants.mobile.ants_insight.Model.ProductItem;
-import ants.mobile.ants_insight.Model.UserItem;
 import ants.mobile.insights.R;
-
-import static ants.mobile.insights.R.layout.cfdialog_single_select_item_layout;
 
 public class MainActivity extends Activity {
 
@@ -104,7 +82,7 @@ public class MainActivity extends Activity {
         extraItem.setOthers(otherList);
 
 
-        insights.logEvent(ActionEvent.CART_VIEW_ACTION, productList, extraItem, dimensionList);
+        insights.logEvent(ActionEvent.CART_VIEW, productList, extraItem, dimensionList);
         tvShowAds.setOnClickListener(v -> insights.resetAnonymousId());
 
 

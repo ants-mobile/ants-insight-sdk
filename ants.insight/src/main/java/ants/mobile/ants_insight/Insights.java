@@ -107,7 +107,7 @@ public class Insights {
         registerNetworkReceiver();
 
         if (Utils.getBooleanValue(mContext, Constants.FIRST_INSTALL_APP)) {
-            logEvent(ActionEvent.USER_IDENTIFY_ACTION);
+            logEvent(ActionEvent.USER_IDENTIFY);
         }
     }
 
