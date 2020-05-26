@@ -4,12 +4,10 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Looper;
-import android.provider.Settings;
 
 import androidx.core.app.ActivityCompat;
 
@@ -21,17 +19,18 @@ import com.google.android.gms.location.LocationServices;
 
 import adx.Utils;
 import ants.mobile.ants_insight.Constants.Constants;
-import ants.mobile.ants_insight.InsightApplication;
 
 public class CurrentLocation {
     private Activity activity;
     private FusedLocationProviderClient mFusedLocationClient;
     private Context mContext;
 
-    public CurrentLocation(Context mContext) {
-        this.mContext = InsightApplication.getInstance();
-        this.activity = Utils.getActivity(mContext);
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+    public CurrentLocation(Activity activity) {
+        if (activity != null) {
+            this.mContext = activity;
+            this.activity = Utils.getActivity(mContext);
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        }
     }
 
     private boolean checkPermissions() {
@@ -40,12 +39,14 @@ public class CurrentLocation {
     }
 
     private void requestPermissions() {
-        int PERMISSION_ID = 44;
-        ActivityCompat.requestPermissions(
-                activity,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                PERMISSION_ID
-        );
+        if (activity != null) {
+            int PERMISSION_ID = 44;
+            ActivityCompat.requestPermissions(
+                    activity,
+                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSION_ID
+            );
+        }
     }
 
     private boolean isLocationEnabled() {
@@ -58,7 +59,7 @@ public class CurrentLocation {
 
     @SuppressLint("MissingPermission")
     public void getAndSaveLastLocation() {
-        if (checkPermissions()) {
+        if (checkPermissions() && activity != null) {
             if (isLocationEnabled()) {
                 mFusedLocationClient.getLastLocation().addOnCompleteListener(
                         task -> {
