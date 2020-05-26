@@ -21,18 +21,17 @@ import com.google.android.gms.location.LocationServices;
 
 import adx.Utils;
 import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.InsightApplication;
 
 public class CurrentLocation {
     private Activity activity;
     private FusedLocationProviderClient mFusedLocationClient;
     private Context mContext;
 
-    public CurrentLocation(Activity activity) {
-        if (activity != null) {
-            this.mContext = activity.getApplicationContext();
-            this.activity = activity;
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
-        }
+    public CurrentLocation(Context mContext) {
+        this.mContext = InsightApplication.getInstance();
+        this.activity = Utils.getActivity(mContext);
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
     }
 
     private boolean checkPermissions() {
@@ -72,9 +71,6 @@ public class CurrentLocation {
                             }
                         }
                 );
-            } else {
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                activity.startActivity(intent);
             }
         } else {
             requestPermissions();

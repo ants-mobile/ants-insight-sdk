@@ -99,8 +99,8 @@ public class Insights {
 
         isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
 
-//        CurrentLocation currentLocation = new CurrentLocation((Activity) mContext);
-//        currentLocation.getAndSaveLastLocation();
+        CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
+        currentLocation.getAndSaveLastLocation();
 
         isApiDetail = ApiClient.getInsightInstance(mContext);
         dlvApiDetail = ApiClient.getDeliveryInstance(mContext);
@@ -353,8 +353,6 @@ public class Insights {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public static void initialization(@NonNull Context mContext) {
-        CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
-        currentLocation.getAndSaveLastLocation();
         String data = Utils.getAssetJsonData(mContext);
         Type type = new TypeToken<InsightConfig>() {
         }.getType();

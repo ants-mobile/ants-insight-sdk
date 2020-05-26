@@ -13,6 +13,8 @@
         android:name="android.permission.INTERNAL_SYSTEM_WINDOW"
         tools:ignore="ProtectedPermissions" />
 
-    <application android:usesCleartextTraffic="true" />
+    <application
+        android:name=".InsightApplication"
+        android:usesCleartextTraffic="true" />
 
 </manifest>
