@@ -1,6 +1,7 @@
 package ants.mobile.ants_insight;
 
 import android.Manifest;
+import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -98,7 +99,7 @@ public class Insights {
 
         isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
 
-        CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
+        CurrentLocation currentLocation = new CurrentLocation((Activity) mContext);
         currentLocation.getAndSaveLastLocation();
 
         isApiDetail = ApiClient.getInsightInstance(mContext);
