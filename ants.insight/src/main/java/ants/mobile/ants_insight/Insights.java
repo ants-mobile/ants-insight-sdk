@@ -321,7 +321,7 @@ public class Insights {
     private Map<String, String> getQueryParam(int type) {
         Map<String, String> param = new HashMap<>();
         param.put("portal_id", Utils.getSharedPreValue(mContext, Constants.PORTAL_ID));
-        param.put("prop_id", Utils.getSharedPreValue(mContext, Constants.PORTAL_ID));
+        param.put("prop_id", Utils.getSharedPreValue(mContext, Constants.PROPERTY_ID));
         param.put(type == DELIVERY_TYPE ? "format" : "resp_type", "json");
         return param;
     }
