@@ -16,9 +16,6 @@ public class HomeActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.adx_template_center);
-
-        HumanComponent component = DaggerHumanComponent.builder().humanModule(new HumanModule()).build();
-        Human human = component.providerHuman();
     }
 
 }

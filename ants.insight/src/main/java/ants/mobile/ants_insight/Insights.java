@@ -33,15 +33,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ants.mobile.ants_insight.Constants.Constants;
-import ants.mobile.ants_insight.Model.CustomEventsData;
-import ants.mobile.ants_insight.Model.DataRequestFaceBook;
-import ants.mobile.ants_insight.Service.FacebookApiDetail;
 import ants.mobile.ants_insight.adx.ActivityLifecycleListener;
 import ants.mobile.ants_insight.adx.Campaign;
 import ants.mobile.ants_insight.adx.Utils;
 import ants.mobile.ants_insight.adx.WebViewManager;
-import ants.mobile.ants_insight.Constants.ActionEvent;
+import ants.mobile.ants_insight.Constants.Event;
 import ants.mobile.ants_insight.Model.CurrentLocation;
 import ants.mobile.ants_insight.Response.DeliveryResponse;
 import ants.mobile.ants_insight.Model.Dimension;
@@ -149,7 +145,7 @@ public class Insights {
         deliveryApiDetail = ApiClient.getDeliveryInstance();
 
         if (InsightSharedPref.getBooleanValue(PREF_IS_FIRST_INSTALL_APP)) {
-            logEvent(ActionEvent.USER_IDENTIFY_ACTION);
+            logEvent(Event.IDENTIFY);
         }
         registerNetworkReceiver();
     }
@@ -306,19 +302,19 @@ public class Insights {
     private String getFbEventName(String insightEventName) {
         String fbEventName = "";
         switch (insightEventName) {
-            case ActionEvent.PURCHASE_ACTION:
+            case Event.PURCHASE:
                 fbEventName = "fb_mobile_purchase";
                 break;
-            case ActionEvent.ADD_TO_CART_ACTION:
+            case Event.ADD_TO_CART:
                 fbEventName = "fb_mobile_add_to_cart";
                 break;
-            case ActionEvent.PAYMENT_INFO_ENTERED_ACTION:
+            case Event.PAYMENT:
                 fbEventName = "fb_mobile_add_payment_info";
                 break;
-            case ActionEvent.PRODUCT_VIEW_ACTION:
+            case Event.VIEW:
                 fbEventName = "fb_mobile_content_view";
                 break;
-            case ActionEvent.PRODUCTS_SEARCHED_ACTION:
+            case Event.PRODUCT_SEARCH:
                 fbEventName = "fb_mobile_search";
             default:
                 break;

@@ -26,16 +26,17 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import ants.mobile.ants_insight.Anonymous;
-import ants.mobile.ants_insight.Constants.ActionEvent;
+import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.Constants.Event;
 import ants.mobile.ants_insight.InsightSDK;
 import ants.mobile.ants_insight.InsightSharedPref;
 
-import static ants.mobile.ants_insight.Constants.ActionEvent.USER_SIGN_IN_ACTION;
+import static ants.mobile.ants_insight.Constants.Event.SIGN_IN;
 import static ants.mobile.ants_insight.Constants.Constants.PREF_IS_FIRST_INSTALL_APP;
 import static ants.mobile.ants_insight.Constants.Constants.PREF_KEY_ONE_SIGNAL_ID;
 
 public class InsightDataRequest {
-    private List<ProductItem> productItemList = new ArrayList<>();
+    private List<ProductItem> productItemList;
     private ContextModel contextModel;
     private ExtraItem extraItem;
     private String eventAction;
@@ -50,12 +51,12 @@ public class InsightDataRequest {
     private static String sections = "";
 
     @Retention(RetentionPolicy.SOURCE)
-    @StringDef({ActionEvent.PRODUCTS_SEARCHED_ACTION, ActionEvent.PRODUCT_LIST_VIEWED_ACTION,
-            ActionEvent.PRODUCT_LIST_FILTERED_ACTION, ActionEvent.PRODUCT_CLICK_ACTION,
-            ActionEvent.PRODUCT_VIEW_ACTION, ActionEvent.ADD_TO_CART_ACTION, ActionEvent.REMOVE_CART_ACTION,
-            ActionEvent.CART_VIEW_ACTION, ActionEvent.CHECKOUT_ACTION, ActionEvent.PAYMENT_INFO_ENTERED_ACTION,
-            ActionEvent.PURCHASE_ACTION, ActionEvent.SCREEN_VIEW_ACTION, ActionEvent.USER_IDENTIFY_ACTION,
-            ActionEvent.USER_SIGN_OUT_ACTION, USER_SIGN_IN_ACTION, ActionEvent.IMPRESSION_ACTION, ActionEvent.VIEWABLE_ACTION, ActionEvent.ADX_CLICK_ACTION})
+    @StringDef({Event.PRODUCT_SEARCH, Event.PRODUCT_LIST_VIEW,
+            Event.PRODUCT_LIST_FILTER, Event.CLICK,
+            Event.VIEW, Event.ADD_TO_CART, Event.REMOVE_CART,
+            Event.VIEW_CART, Event.CHECKOUT, Event.PAYMENT,
+            Event.PURCHASE, Event.SCREEN_VIEW, Event.IDENTIFY,
+            Event.SIGN_OUT, SIGN_IN, Event.IMPRESSION, Event.VIEWABLE, Event.ADX_CLICK})
     private @interface validateActionEvent {
     }
 
@@ -67,6 +68,7 @@ public class InsightDataRequest {
         private List<Dimension> dimensionList;
         private String eventActionCustom;
         private String eventCategoryCustom;
+        private Campaign campaign;
 
         public Builder eventActionCustom(String eventActionCustom) {
             this.eventActionCustom = eventActionCustom;
@@ -103,6 +105,11 @@ public class InsightDataRequest {
             return this;
         }
 
+        public Builder setCampaign(Campaign campaign) {
+            this.campaign = campaign;
+            return this;
+        }
+
 
         public InsightDataRequest build() {
             return new InsightDataRequest(this);
@@ -120,6 +127,7 @@ public class InsightDataRequest {
         this.extraItem = builder.extraItem;
         this.eventActionCustom = builder.eventActionCustom;
         this.eventCategoryCustom = builder.eventCategoryCustom;
+        this.setCampaign(builder.campaign);
     }
 
     /**
@@ -202,27 +210,27 @@ public class InsightDataRequest {
         String category = "";
 
         switch (eventAction) {
-            case ActionEvent.IMPRESSION_ACTION:
-            case ActionEvent.ADX_CLICK_ACTION:
-                category = ActionEvent.ADVERTISING_CATEGORY;
+            case Event.IMPRESSION:
+            case Event.ADX_CLICK:
+                category = Constants.ADVERTISING_CATEGORY;
                 break;
-            case ActionEvent.USER_IDENTIFY_ACTION:
-            case ActionEvent.USER_SIGN_OUT_ACTION:
-                category = ActionEvent.USER_IDENTIFY_CATEGORY;
+            case Event.IDENTIFY:
+            case Event.SIGN_OUT:
+                category = Constants.USER_IDENTIFY_CATEGORY;
                 break;
-            case ActionEvent.SCREEN_VIEW_ACTION:
+            case Event.SCREEN_VIEW:
                 if (getProductItemList().size() == 0)
-                    category = ActionEvent.SCREEN_VIEW_CATEGORY;
+                    category = Constants.SCREEN_VIEW_CATEGORY;
                 break;
-            case ActionEvent.PRODUCT_LIST_FILTERED_ACTION:
-            case ActionEvent.PRODUCT_LIST_VIEWED_ACTION:
-            case ActionEvent.PRODUCTS_SEARCHED_ACTION:
-                category = ActionEvent.BROWSING_CATEGORY;
+            case Event.PRODUCT_LIST_FILTER:
+            case Event.PRODUCT_LIST_VIEW:
+            case Event.PRODUCT_SEARCH:
+                category = Constants.BROWSING_CATEGORY;
                 break;
         }
-        for (int i = 0; i < ActionEvent.actionListHasCategoryProduct().size(); i++) {
-            if (ActionEvent.actionListHasCategoryProduct().contains(eventAction)) {
-                category = ActionEvent.PRODUCT_CATEGORY;
+        for (int i = 0; i < Event.actionListHasCategoryProduct().size(); i++) {
+            if (Event.actionListHasCategoryProduct().contains(eventAction)) {
+                category = Constants.PRODUCT_CATEGORY;
                 break;
             }
         }

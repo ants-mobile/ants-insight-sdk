@@ -16,7 +16,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ants.mobile.ants_insight.Constants.ActionEvent;
+import ants.mobile.ants_insight.Constants.Event;
 import ants.mobile.ants_insight.Insights;
 import ants.mobile.ants_insight.Model.Dimension;
 import ants.mobile.ants_insight.Model.ExtraItem;
@@ -62,8 +62,8 @@ public class MainActivity extends Activity {
 
         ExtraItem extraItem = new ExtraItem.Builder().orderId("").deliveryCost(3).build();
 
-        insights.logEvent(ActionEvent.IMPRESSION_ACTION, productList, extraItem, dimensionList);
-        tvShowAds.setOnClickListener(v -> insights.logEvent(ActionEvent.CART_VIEW_ACTION, productList, extraItem, dimensionList));
+        insights.logEvent(Event.IMPRESSION, productList, extraItem, dimensionList);
+        tvShowAds.setOnClickListener(v -> insights.logEvent(Event.VIEW_CART, productList, extraItem, dimensionList));
     }
 
 

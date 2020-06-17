@@ -41,4 +41,11 @@ public class Constants {
     public static final String PREF_FB_ADD_TO_CART_TOKEN = "fb_add_to_cart_token";
     public static final String PREF_FB_CHECK_OUT_TOKEN = "fb_check_out_token";
     public static final String PREF_FB_VIEW_PRODUCT_TOKEN = "fb_check_out_token";
+
+    //event categories
+    public static final String SCREEN_VIEW_CATEGORY = "screenview";
+    public static final String USER_IDENTIFY_CATEGORY = "user";
+    public static final String BROWSING_CATEGORY = "browsing";
+    public static final String PRODUCT_CATEGORY = "product";
+    public static final String ADVERTISING_CATEGORY = "advertising";
 }
