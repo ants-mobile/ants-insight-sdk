@@ -25,11 +25,14 @@ import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import adx.Utils;
+import ants.mobile.ants_insight.Anonymous;
 import ants.mobile.ants_insight.Constants.ActionEvent;
-import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.InsightSDK;
+import ants.mobile.ants_insight.InsightSharedPref;
 
-import static ants.mobile.ants_insight.Constants.ActionEvent.USER_SIGN_IN;
+import static ants.mobile.ants_insight.Constants.ActionEvent.USER_SIGN_IN_ACTION;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_IS_FIRST_INSTALL_APP;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_KEY_ONE_SIGNAL_ID;
 
 public class InsightDataRequest {
     private List<ProductItem> productItemList = new ArrayList<>();
@@ -45,34 +48,88 @@ public class InsightDataRequest {
     private String eventCategoryCustom;
     private UserItem userItem;
     private static String sections = "";
-    private static final String SCREEN_VIEW_CATEGORY = "screenview";
-    private static final String USER_IDENTIFY_CATEGORY = "user";
-    private static final String BROWSING_CATEGORY = "browsing";
-    private static final String PRODUCT_CATEGORY = "product";
-    private static final String ADVERTISING_CATEGORY = "advertising";
 
     @Retention(RetentionPolicy.SOURCE)
-    @StringDef({ActionEvent.PRODUCT_SEARCH, ActionEvent.PRODUCT_LIST_VIEW,
-            ActionEvent.PRODUCT_LIST_FILTER, ActionEvent.PRODUCT_CLICK,
-            ActionEvent.PRODUCT_VIEW, ActionEvent.ADD_TO_CART, ActionEvent.REMOVE_CART,
-            ActionEvent.CART_VIEW, ActionEvent.CHECKOUT, ActionEvent.PAYMENT_INFO_ENTERED,
-            ActionEvent.PURCHASE, ActionEvent.SCREEN_VIEW, ActionEvent.USER_IDENTIFY,
-            ActionEvent.USER_SIGN_OUT, USER_SIGN_IN, ActionEvent.IMPRESSION_ACTION, ActionEvent.VIEWABLE_ACTION, ActionEvent.ADX_CLICK_ACTION})
+    @StringDef({ActionEvent.PRODUCTS_SEARCHED_ACTION, ActionEvent.PRODUCT_LIST_VIEWED_ACTION,
+            ActionEvent.PRODUCT_LIST_FILTERED_ACTION, ActionEvent.PRODUCT_CLICK_ACTION,
+            ActionEvent.PRODUCT_VIEW_ACTION, ActionEvent.ADD_TO_CART_ACTION, ActionEvent.REMOVE_CART_ACTION,
+            ActionEvent.CART_VIEW_ACTION, ActionEvent.CHECKOUT_ACTION, ActionEvent.PAYMENT_INFO_ENTERED_ACTION,
+            ActionEvent.PURCHASE_ACTION, ActionEvent.SCREEN_VIEW_ACTION, ActionEvent.USER_IDENTIFY_ACTION,
+            ActionEvent.USER_SIGN_OUT_ACTION, USER_SIGN_IN_ACTION, ActionEvent.IMPRESSION_ACTION, ActionEvent.VIEWABLE_ACTION, ActionEvent.ADX_CLICK_ACTION})
     private @interface validateActionEvent {
     }
 
-    public InsightDataRequest(Context mContext, String eventAction) {
-        this.eventAction = eventAction;
-        this.mContext = mContext;
-        contextModel = new ContextModel(mContext);
+    public static class Builder {
+        private String eventName;
+        private List<ProductItem> productList;
+        private UserItem userItem;
+        private ExtraItem extraItem;
+        private List<Dimension> dimensionList;
+        private String eventActionCustom;
+        private String eventCategoryCustom;
+
+        public Builder eventActionCustom(String eventActionCustom) {
+            this.eventActionCustom = eventActionCustom;
+            return this;
+        }
+
+        public Builder eventCategoryCustom(String eventCategoryCustom) {
+            this.eventCategoryCustom = eventCategoryCustom;
+            return this;
+        }
+
+        public Builder user(UserItem userItem) {
+            this.userItem = userItem;
+            return this;
+        }
+
+        public Builder dimensionList(List<Dimension> dimensionList) {
+            this.dimensionList = dimensionList;
+            return this;
+        }
+
+        public Builder extraData(ExtraItem item) {
+            this.extraItem = item;
+            return this;
+        }
+
+        public Builder withEventName(String eventName) {
+            this.eventName = eventName;
+            return this;
+        }
+
+        public Builder productList(List<ProductItem> productList) {
+            this.productList = productList;
+            return this;
+        }
+
+
+        public InsightDataRequest build() {
+            return new InsightDataRequest(this);
+        }
+
     }
 
-    public InsightDataRequest(Context mContext) {
-        this.mContext = mContext;
+    private InsightDataRequest(Builder builder) {
+        this.mContext = InsightSDK.getInstance();
+        this.contextModel = new ContextModel(InsightSDK.getInstance());
+        this.eventAction = builder.eventName;
+        this.productItemList = builder.productList;
+        this.dimensionList = builder.dimensionList;
+        this.userItem = builder.userItem;
+        this.extraItem = builder.extraItem;
+        this.eventActionCustom = builder.eventActionCustom;
+        this.eventCategoryCustom = builder.eventCategoryCustom;
     }
+
+    /**
+     * Convert data to param-key
+     *
+     * @return JSonObject
+     */
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public JSONObject getDataRequest() {
+    public JSONObject getJSONObjectData() {
         JSONObject param = new JSONObject();
         try {
             param.put("uid", getUID());
@@ -90,13 +147,13 @@ public class InsightDataRequest {
             else if (userItem != null)
                 param.putOpt("items", getUser());
 
-            if (Utils.getBooleanValue(mContext, Constants.FIRST_INSTALL_APP)) {
+            if (InsightSharedPref.getBooleanValue(PREF_IS_FIRST_INSTALL_APP)) {
                 JSONObject extraParam = new JSONObject();
 
-                extraParam.put("onesignal_id", Utils.getSharedPreValue(mContext, Constants.KEY_ONE_SIGNAL_ID));
+                extraParam.put("onesignal_id", InsightSharedPref.getStringValue(PREF_KEY_ONE_SIGNAL_ID));
                 param.putOpt("extra", extraParam);
 
-                Utils.savePreference(mContext, Constants.FIRST_INSTALL_APP, false);
+                InsightSharedPref.savePreference(PREF_IS_FIRST_INSTALL_APP, false);
 
             } else {
                 if (extraItem != null)
@@ -117,11 +174,7 @@ public class InsightDataRequest {
         return param;
     }
 
-    public void setContextModel(ContextModel contextModel) {
-        this.contextModel = contextModel;
-    }
-
-    private List<ProductItem> getProductItemList() {
+    public List<ProductItem> getProductItemList() {
         return productItemList;
     }
 
@@ -145,49 +198,36 @@ public class InsightDataRequest {
         return Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
     }
 
-    /**
-     * Get the eventAction the user provided to find the appropriate eventCategory
-     *
-     * @param eventAction
-     * @return event category
-     */
-
     private String getEventCategory(@NonNull String eventAction) {
         String category = "";
 
         switch (eventAction) {
             case ActionEvent.IMPRESSION_ACTION:
             case ActionEvent.ADX_CLICK_ACTION:
-                category = ADVERTISING_CATEGORY;
+                category = ActionEvent.ADVERTISING_CATEGORY;
                 break;
-            case ActionEvent.USER_IDENTIFY:
-            case ActionEvent.USER_SIGN_OUT:
-                category = USER_IDENTIFY_CATEGORY;
+            case ActionEvent.USER_IDENTIFY_ACTION:
+            case ActionEvent.USER_SIGN_OUT_ACTION:
+                category = ActionEvent.USER_IDENTIFY_CATEGORY;
                 break;
-            case ActionEvent.SCREEN_VIEW:
+            case ActionEvent.SCREEN_VIEW_ACTION:
                 if (getProductItemList().size() == 0)
-                    category = SCREEN_VIEW_CATEGORY;
+                    category = ActionEvent.SCREEN_VIEW_CATEGORY;
                 break;
-            case ActionEvent.PRODUCT_LIST_FILTER:
-            case ActionEvent.PRODUCT_LIST_VIEW:
-            case ActionEvent.PRODUCT_SEARCH:
-                category = BROWSING_CATEGORY;
+            case ActionEvent.PRODUCT_LIST_FILTERED_ACTION:
+            case ActionEvent.PRODUCT_LIST_VIEWED_ACTION:
+            case ActionEvent.PRODUCTS_SEARCHED_ACTION:
+                category = ActionEvent.BROWSING_CATEGORY;
                 break;
         }
         for (int i = 0; i < ActionEvent.actionListHasCategoryProduct().size(); i++) {
             if (ActionEvent.actionListHasCategoryProduct().contains(eventAction)) {
-                category = PRODUCT_CATEGORY;
+                category = ActionEvent.PRODUCT_CATEGORY;
                 break;
             }
         }
         return eventCategory = category;
     }
-
-    /**
-     * Refresh the sectionId every 30 minutes
-     *
-     * @return sectionId
-     */
 
     private String getSectionId() {
         if (TextUtils.isEmpty(sections)) sections = getSections();
@@ -208,22 +248,11 @@ public class InsightDataRequest {
         return formatter.format(todayDate);
     }
 
-    public void setEventCustom(@NonNull String eventActionCustom, @NonNull String eventCategoryCustom) {
-        isCustomizeAction = true;
-        this.eventActionCustom = eventActionCustom;
-        this.eventCategoryCustom = eventCategoryCustom;
-    }
-
-    public void setEventAction(@validateActionEvent String eventAction) {
-        this.eventAction = eventAction;
-    }
-
-
     private String getEventActionCustom() {
         return this.eventActionCustom;
     }
 
-    private String getEventAction() {
+    public String getEventAction() {
         return eventAction = isCustomizeAction ? getEventActionCustom()
                 : eventAction;
     }
@@ -235,18 +264,6 @@ public class InsightDataRequest {
     private String getEventCategory() {
         return eventCategory = isCustomizeAction ? getEventCategoryCustom()
                 : this.getEventCategory(eventAction);
-    }
-
-    public void setProductItemList(List<ProductItem> productItemList) {
-        this.productItemList = productItemList;
-    }
-
-    public void setDimensionList(List<Dimension> dimensionList) {
-        this.dimensionList = dimensionList;
-    }
-
-    public void setExtraItem(ExtraItem extraItem) {
-        this.extraItem = extraItem;
     }
 
     private JSONObject getExtraItem() {
@@ -275,14 +292,6 @@ public class InsightDataRequest {
                 array.put(userItem.getUserInfo(mContext));
         }
         return array;
-    }
-
-    public UserItem getUserItem() {
-        return userItem;
-    }
-
-    public void setUserItem(UserItem userItem) {
-        this.userItem = userItem;
     }
 
     public void setCampaign(Campaign campaign) {

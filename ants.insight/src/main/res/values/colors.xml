@@ -6,5 +6,8 @@
     <color name="TRANSPARENT">#00000000</color>
     <color name="white">#ffffff</color>
     <color name="black">#000000</color>
-    <color name="color_gray">#C5BEBE</color>
+    <color name="gray">#C5BEBE</color>
+    <color name="text_color_blue">#F00685ED</color>
+    <color name="text_color_red">#FF1201</color>
+    <color name="bg_button_blue">#F00B7AD5</color>
 </resources>

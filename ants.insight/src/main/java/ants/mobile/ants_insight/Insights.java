@@ -1,7 +1,6 @@
 package ants.mobile.ants_insight;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.Application;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -28,20 +27,23 @@ import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import adx.ActivityLifecycleListener;
-import adx.Campaign;
-import adx.Utils;
-import adx.WebViewManager;
-import ants.mobile.ants_insight.Constants.ActionEvent;
 import ants.mobile.ants_insight.Constants.Constants;
-import ants.mobile.ants_insight.Model.Anonymous;
-import ants.mobile.ants_insight.Model.ContextModel;
+import ants.mobile.ants_insight.Model.CustomEventsData;
+import ants.mobile.ants_insight.Model.DataRequestFaceBook;
+import ants.mobile.ants_insight.Service.FacebookApiDetail;
+import ants.mobile.ants_insight.adx.ActivityLifecycleListener;
+import ants.mobile.ants_insight.adx.Campaign;
+import ants.mobile.ants_insight.adx.Utils;
+import ants.mobile.ants_insight.adx.WebViewManager;
+import ants.mobile.ants_insight.Constants.ActionEvent;
 import ants.mobile.ants_insight.Model.CurrentLocation;
-import ants.mobile.ants_insight.Model.DeliveryResponse;
+import ants.mobile.ants_insight.Response.DeliveryResponse;
 import ants.mobile.ants_insight.Model.Dimension;
 import ants.mobile.ants_insight.Model.ExtraItem;
 import ants.mobile.ants_insight.Model.InsightConfig;
@@ -51,24 +53,41 @@ import ants.mobile.ants_insight.Model.UserItem;
 import ants.mobile.ants_insight.Service.ApiClient;
 import ants.mobile.ants_insight.Service.DeliveryApiDetail;
 import ants.mobile.ants_insight.Service.InsightApiDetail;
+import ants.mobile.ants_insight.db.InsightDatabase;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+
+import static ants.mobile.ants_insight.Constants.Constants.PREF_DELIVERY_URL;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_ADD_TO_CART_TOKEN;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_CHECKOUT_APP_ID;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_CHECK_OUT_TOKEN;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_PURCHASE_APP_ID;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_PURCHASE_TOKEN;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_VIEW_PRODUCT_APP_ID;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_VIEW_PRODUCT_TOKEN;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_INSIGHT_URL;
+import static ants.mobile.ants_insight.Constants.Constants.IS_DELIVERY;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_IS_FIRST_INSTALL_APP;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_PORTAL_ID;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_PROPERTY_ID;
+import static ants.mobile.ants_insight.Constants.Constants.MAXIMUM_NUMBER_OF_REQUESTS;
+import static ants.mobile.ants_insight.Constants.Constants.PERMISSION_ALL;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_ADD_TO_CART_APP_ID;
+import static ants.mobile.ants_insight.Constants.Constants.PREF_UID;
+import static ants.mobile.ants_insight.Constants.Constants.TO_DELIVERY;
+import static ants.mobile.ants_insight.Constants.Constants.TO_INSIGHT;
 
 public class Insights {
 
     private Context mContext;
     private InsightApiDetail isApiDetail;
-    private DeliveryApiDetail dlvApiDetail;
+    private DeliveryApiDetail deliveryApiDetail;
     private InsightDatabase mInsightDatabase;
     private Cursor events;
     private SQLiteDatabase db;
     private List<Long> timeRequest = new ArrayList<>();
-    private static final int MAXIMUM_NUMBER_OF_REQUESTS = 30;
-    private static final String TAG = "INSIGHT_ERROR";
+    private static final String TAG = Insights.class.getCanonicalName();
     private JsonObject paramObject;
-    private JsonParser insightsJson = new JsonParser();
-    private static final int INSIGHT_TYPE = 1;
-    private static final int DELIVERY_TYPE = 2;
     private boolean isShowInAppView = true;
     private boolean isDelivery = true;
 
@@ -77,49 +96,76 @@ public class Insights {
             Manifest.permission.ACCESS_FINE_LOCATION,
             android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
-            android.Manifest.permission.CAMERA};
+            android.Manifest.permission.CAMERA
+    };
 
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public Insights(Context mContext) {
-        this.mContext = mContext;
-        if (mInsightDatabase == null)
-            mInsightDatabase = new InsightDatabase(mContext);
-        init();
+
+    public static class Builder {
+        private Context mContext;
+
+        public Insights.Builder getContext(Context context) {
+            this.mContext = context;
+            return this;
+        }
+
+        public Insights build() {
+            return new Insights(this);
+        }
+    }
+    private Insights(Builder builder) {
+        mContext = builder.mContext;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+            initialization();
+
+        String data = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            data = Utils.getAssetJsonData(mContext);
+        }
+        Type type = new TypeToken<InsightConfig>() {
+        }.getType();
+        InsightConfig config = new Gson().fromJson(data, type);
+
+        if (validConfigFile(config))
+            saveConfigToSharedPref(config);
+        else
+            Log.e(TAG, "PLEASE READ THE CONFIGURATION FILE CREATION GUIDE AGAIN");
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void init() {
-
+    private void initialization() {
         ActivityLifecycleListener.registerActivityLifecycleCallbacks((Application) mContext.getApplicationContext());
 
-        if (!hasPermissions(mContext, PERMISSIONS)) {
-            int PERMISSION_ALL = 200;
+        if (mInsightDatabase == null)
+            mInsightDatabase = new InsightDatabase(mContext);
+
+        if (!hasPermissions(mContext, PERMISSIONS))
             ActivityCompat.requestPermissions(Utils.getActivity(mContext), PERMISSIONS, PERMISSION_ALL);
+
+        isDelivery = InsightSharedPref.getBooleanValue(IS_DELIVERY);
+
+        new CurrentLocation.Builder().activity(Utils.getActivity(mContext)).build().getAndSaveLastLocation();
+
+        isApiDetail = ApiClient.getInsightInstance();
+        deliveryApiDetail = ApiClient.getDeliveryInstance();
+
+        if (InsightSharedPref.getBooleanValue(PREF_IS_FIRST_INSTALL_APP)) {
+            logEvent(ActionEvent.USER_IDENTIFY_ACTION);
         }
-
-        isDelivery = Utils.getBooleanValue(mContext, Constants.DELIVERY);
-
-        if (TextUtils.isEmpty(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE)) || ""
-                .equals(Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE))) {
-            CurrentLocation currentLocation = new CurrentLocation(Utils.getActivity(mContext));
-            currentLocation.getAndSaveLastLocation();
-        }
-
-        isApiDetail = ApiClient.getInsightInstance(mContext);
-        dlvApiDetail = ApiClient.getDeliveryInstance(mContext);
-
         registerNetworkReceiver();
-
-        if (Utils.getBooleanValue(mContext, Constants.FIRST_INSTALL_APP)) {
-            logEvent(ActionEvent.USER_IDENTIFY);
-        }
     }
 
+    /**
+     * create network listeners
+     */
     private void registerNetworkReceiver() {
         IntentFilter intentFilter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
         mContext.registerReceiver(networkStateReceiver, intentFilter);
     }
 
+    /**
+     * listen until the internet is available
+     * if network available, check data in localDb, if available, get and callApi
+     */
     private BroadcastReceiver networkStateReceiver = new BroadcastReceiver() {
         @RequiresApi(api = Build.VERSION_CODES.KITKAT)
         @Override
@@ -140,16 +186,9 @@ public class Insights {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void logEvent(@NonNull String action) {
-
-        InsightDataRequest data = new InsightDataRequest(mContext);
-        ContextModel context = new ContextModel(mContext);
-        data.setEventAction(action);
-        data.setContextModel(context);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            paramObject = (JsonObject) insightsJson.parse(data.getDataRequest().toString());
-        }
-        callApi();
+        InsightDataRequest data = new InsightDataRequest.Builder().withEventName(action).build();
+        paramObject = (JsonObject) JsonParser.parseString(data.getJSONObjectData().toString());
+        callInsightApi(data);
     }
 
     /**
@@ -158,18 +197,11 @@ public class Insights {
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void logEvent(@NonNull String action, UserItem userItem) {
-
-        InsightDataRequest data = new InsightDataRequest(mContext);
-        ContextModel context = new ContextModel(mContext);
-        data.setEventAction(action);
-        data.setContextModel(context);
-        data.setUserItem(userItem);
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            paramObject = (JsonObject) insightsJson.parse(data.getDataRequest().toString());
-        }
-
-        callApi();
+        InsightDataRequest data = new InsightDataRequest
+                .Builder()
+                .withEventName(action)
+                .user(userItem).build();
+        callInsightApi(data);
     }
 
     /**
@@ -180,33 +212,23 @@ public class Insights {
     public void logEvent(@NonNull String action, @NonNull List<ProductItem> productItems,
                          @Nullable ExtraItem extraItem, @Nullable List<Dimension> dimensions) {
 
-        InsightDataRequest data = new InsightDataRequest(mContext);
-        ContextModel context = new ContextModel(mContext);
-        data.setEventAction(action);
-        data.setProductItemList(productItems);
-        data.setExtraItem(extraItem);
-        data.setContextModel(context);
-        data.setDimensionList(dimensions);
+        InsightDataRequest data = new InsightDataRequest.Builder().withEventName(action)
+                .productList(productItems)
+                .extraData(extraItem)
+                .dimensionList(dimensions).build();
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            paramObject = (JsonObject) insightsJson.parse(data.getDataRequest().toString());
-        }
-
-        callApi();
+        callInsightApi(data);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private void callApi() {
-        if (insightsValid(INSIGHT_TYPE)) {
-            isApiDetail.logEvent(getQueryParam(INSIGHT_TYPE), paramObject)
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribeOn(Schedulers.io())
-                    .subscribe(new CustomApiCallBack<JsonObject>() {
-                    });
+    private void callInsightApi(InsightDataRequest dataRequest) {
+        paramObject = (JsonObject) JsonParser.parseString(dataRequest.getJSONObjectData().toString());
+        if (insightsValid(TO_INSIGHT)) {
+            isApiDetail.logEvent(getQueryParam(TO_INSIGHT), paramObject);
         }
 
-        if (isDelivery && insightsValid(DELIVERY_TYPE)) {
-            dlvApiDetail.logDelivery(getQueryParam(DELIVERY_TYPE), paramObject)
+        if (isDelivery && insightsValid(TO_DELIVERY)) {
+            deliveryApiDetail.logDelivery(getQueryParam(TO_DELIVERY), paramObject)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(Schedulers.io())
                     .subscribe(new CustomApiCallBack<DeliveryResponse>() {
@@ -215,15 +237,158 @@ public class Insights {
                             super.onNext(response);
                             //Todo: handle show ads
                             if (isShowInAppView && response.campaignStatus() && response.getCampaign() != null) {
+                                response.getCampaign().get(0).setPositionId("full_screen");
+                                response.getCampaign().get(0).setNative(true);
                                 handleShowAd(response.getCampaign().get(0));
                             }
                         }
                     });
         }
+        // eventName equals: purchase, add_to_cart, view_product, search, checkout then fb API
+        // eventName in SDK not matching fb API
+
+        if (!TextUtils.isEmpty(getFbEventName(dataRequest.getEventAction()))) {
+            FacebookMarketing fb = new FacebookMarketing.Builder().insightEventName(dataRequest.getEventAction())
+                    .setProductList(dataRequest.getProductItemList()).build();
+            fb.callApiFacebook();
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    private boolean insightsValid(int eventType) {
+        if (!isNetworkConnectionAvailable(mContext)) {
+            Log.e(TAG, "NETWORK NOT AVAILABLE");
+            saveDataToDbLocal(paramObject.toString(), eventType);
+            return false;
+        }
+
+        return true;
+    }
+
+    private static Long getCurrentTime() {
+        Date currentTime = Calendar.getInstance().getTime();
+        return currentTime.getTime();
+    }
+
+    public void unregisterReceiver() {
+        if (mContext != null && networkStateReceiver != null)
+            mContext.unregisterReceiver(networkStateReceiver);
+        if (WebViewManager.lastInstance != null)
+            WebViewManager.lastInstance = null;
     }
 
     /**
-     * Check if the local db has data
+     * get query param
+     *
+     * @param type : delivery or insight
+     * @return Map<String, String>
+     */
+
+    private Map<String, String> getQueryParam(int type) {
+        Map<String, String> param = new HashMap<>();
+        switch (type) {
+            case TO_DELIVERY:
+                param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
+                param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
+                param.put("resp_type", "json");
+                break;
+            case TO_INSIGHT:
+                param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
+                param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
+                param.put("format", "json");
+                break;
+            default:
+                break;
+        }
+        return param;
+    }
+
+    private String getFbEventName(String insightEventName) {
+        String fbEventName = "";
+        switch (insightEventName) {
+            case ActionEvent.PURCHASE_ACTION:
+                fbEventName = "fb_mobile_purchase";
+                break;
+            case ActionEvent.ADD_TO_CART_ACTION:
+                fbEventName = "fb_mobile_add_to_cart";
+                break;
+            case ActionEvent.PAYMENT_INFO_ENTERED_ACTION:
+                fbEventName = "fb_mobile_add_payment_info";
+                break;
+            case ActionEvent.PRODUCT_VIEW_ACTION:
+                fbEventName = "fb_mobile_content_view";
+                break;
+            case ActionEvent.PRODUCTS_SEARCHED_ACTION:
+                fbEventName = "fb_mobile_search";
+            default:
+                break;
+        }
+        return fbEventName;
+    }
+
+    private void handleShowAd(Campaign campaign) {
+        if (!WebViewManager.isShowingAds) {
+            WebViewManager.showHTMLString(campaign);
+            WebViewManager.isShowingAds = true;
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void resetAnonymousId() {
+        InsightDataRequest param = new InsightDataRequest.Builder()
+                .eventActionCustom("reset_anonymous_id")
+                .eventCategoryCustom("user").build();
+
+        if (!Anonymous.getInstance().isFileExists()) {
+            Anonymous.getInstance().saveIndexToStorageLocal(mContext, "0");
+            InsightSharedPref.savePreference(PREF_UID, "0");
+        }
+
+        callInsightApi(param);
+    }
+
+    private static void saveConfigToSharedPref(InsightConfig config) {
+        InsightSharedPref.savePreference(PREF_INSIGHT_URL, config.getInsightUrl());
+        InsightSharedPref.savePreference(PREF_DELIVERY_URL, config.getDeliveryUrl());
+        InsightSharedPref.savePreference(IS_DELIVERY, config.isDelivery());
+        InsightSharedPref.savePreference(PREF_PORTAL_ID, config.getPortalId());
+        InsightSharedPref.savePreference(PREF_PROPERTY_ID, config.getPropertyId());
+        InsightSharedPref.savePreference(PREF_FB_ADD_TO_CART_APP_ID, config.getFbAddToCartAppId());
+        InsightSharedPref.savePreference(PREF_FB_PURCHASE_TOKEN, config.getFbPurchaseToken());
+        InsightSharedPref.savePreference(PREF_FB_ADD_TO_CART_TOKEN, config.getFbAddToCartToken());
+        InsightSharedPref.savePreference(PREF_FB_CHECK_OUT_TOKEN, config.getFbCheckoutToken());
+        InsightSharedPref.savePreference(PREF_FB_VIEW_PRODUCT_TOKEN, config.getFbViewProductToken());
+        InsightSharedPref.savePreference(PREF_FB_CHECKOUT_APP_ID, config.getFbCheckOutAppId());
+        InsightSharedPref.savePreference(PREF_FB_PURCHASE_APP_ID, config.getFbPurchaseAppId());
+        InsightSharedPref.savePreference(PREF_FB_VIEW_PRODUCT_APP_ID, config.getFbViewProductAppId());
+    }
+
+    private static boolean validConfigFile(InsightConfig config) {
+        if (config == null)
+            return false;
+        else {
+            return !TextUtils.isEmpty(config.getPortalId()) &&
+                    !TextUtils.isEmpty(config.getInsightUrl()) &&
+                    !TextUtils.isEmpty(config.getPropertyId()) &&
+                    !TextUtils.isEmpty(config.getDeliveryUrl());
+        }
+    }
+
+    private boolean hasPermissions(Context context, String... permissions) {
+        if (context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /**
+     * query data from dbLocal
+     *
+     * @return boolean
      */
 
     private boolean haveDataInDbLocal() {
@@ -234,6 +399,13 @@ public class Insights {
         } else return false;
     }
 
+    /**
+     * check network available
+     *
+     * @param context Context
+     * @return boolean
+     */
+
     private static boolean isNetworkConnectionAvailable(Context context) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         assert cm != null;
@@ -243,33 +415,40 @@ public class Insights {
         return (network == NetworkInfo.State.CONNECTED || network == NetworkInfo.State.CONNECTING);
     }
 
+    /**
+     * if network available --> push data to server
+     *
+     * @param object    Object
+     * @param eventType int
+     */
+
     private void postDataWhenNetworkAvailable(Object object, int eventType) {
         switch (eventType) {
-            case INSIGHT_TYPE:
-                isApiDetail.logEvent(getQueryParam(INSIGHT_TYPE), object)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe(new CustomApiCallBack<JsonObject>() {
-                        });
+            case TO_INSIGHT:
+                isApiDetail.logEvent(getQueryParam(TO_INSIGHT), object);
                 break;
-            case DELIVERY_TYPE:
-                dlvApiDetail.logDelivery(getQueryParam(DELIVERY_TYPE), object)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribeOn(Schedulers.io())
-                        .subscribe(new CustomApiCallBack<DeliveryResponse>() {
-                        });
+            case TO_DELIVERY:
+                deliveryApiDetail.logDelivery(getQueryParam(TO_DELIVERY), object);
                 break;
             default:
                 break;
         }
     }
 
+    /**
+     * Insert data to dbLocal when network not available
+     * maximum insert 30 record
+     *
+     * @param eventData : InsightDataRequest
+     * @param eventType type Insight or Delivery
+     */
+
     private void saveDataToDbLocal(String eventData, int eventType) {
         if (mInsightDatabase != null) {
             db = mInsightDatabase.getWritableDatabase();
             events = db.query("events", null, null, null, null, null, null);
             if (events.getCount() < MAXIMUM_NUMBER_OF_REQUESTS)
-                mInsightDatabase.insertData(eventData, Utils.getCurrentTime(), eventType);
+                mInsightDatabase.insertData(eventData, getCurrentTime(), eventType);
             else
                 Log.e(TAG, "db can only save up to " + MAXIMUM_NUMBER_OF_REQUESTS + " request");
         }
@@ -290,11 +469,11 @@ public class Insights {
             }
             db.endTransaction();
             events.close();
-            deleteData(timeRequest);
+            deleteItem(timeRequest);
         }
     }
 
-    private void deleteData(List<Long> timeRequest) {
+    private void deleteItem(List<Long> timeRequest) {
         if (timeRequest != null) {
             for (int i = 0; i < timeRequest.size(); i++) {
                 mInsightDatabase.deleteRow(timeRequest.get(i));
@@ -302,90 +481,4 @@ public class Insights {
             this.timeRequest = new ArrayList<>();
         }
     }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    private boolean insightsValid(int eventType) {
-        if (!isNetworkConnectionAvailable(mContext)) {
-            Log.e(TAG, "NETWORK NOT AVAILABLE");
-            saveDataToDbLocal(paramObject.toString(), eventType);
-            return false;
-        }
-        return true;
-    }
-
-    public void unregisterReceiver() {
-        if (mContext != null && networkStateReceiver != null)
-            mContext.unregisterReceiver(networkStateReceiver);
-    }
-
-    private Map<String, String> getQueryParam(int type) {
-        Map<String, String> param = new HashMap<>();
-        param.put("portal_id", Utils.getSharedPreValue(mContext, Constants.PORTAL_ID));
-        param.put("prop_id", Utils.getSharedPreValue(mContext, Constants.PROPERTY_ID));
-        param.put(type == DELIVERY_TYPE ? "format" : "resp_type", "json");
-        return param;
-    }
-
-    private void handleShowAd(Campaign campaign) {
-        if (!WebViewManager.isShowingAds) {
-            WebViewManager.showHTMLString(campaign);
-            WebViewManager.isShowingAds = true;
-        }
-    }
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public void resetAnonymousId() {
-        ContextModel contextModel = new ContextModel(mContext);
-        InsightDataRequest param = new InsightDataRequest(mContext);
-        param.setContextModel(contextModel);
-        param.setEventCustom("reset_anonymous_id", "user");
-        if (!Anonymous.getInstance().isFileExists()) {
-            Anonymous.getInstance().saveIndexToStorageLocal(mContext, "0");
-            Utils.savePreference(mContext, Constants.UID, "0");
-        }
-        paramObject = (JsonObject) insightsJson.parse(param.getDataRequest().toString());
-        callApi();
-
-    }
-
-    /***
-     *This is the function to initialize values ​​for the Insight SDK
-     * Force calling this function before using other methods.
-     * @param mContext
-     */
-
-    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
-    public static void initialization(@NonNull Context mContext) {
-        String data = Utils.getAssetJsonData(mContext);
-        Type type = new TypeToken<InsightConfig>() {
-        }.getType();
-        InsightConfig config = new Gson().fromJson(data, type);
-
-        if (config == null) {
-            Log.e(TAG, "PLEASE READ THE CONFIGURATION FILE CREATION GUIDE AGAIN");
-        } else {
-            Utils.savePreference(mContext, Constants.INSIGHT_URL, config.getInsightUrl());
-            Utils.savePreference(mContext, Constants.DELIVERY_URL, config.getDeliveryUrl());
-            Utils.savePreference(mContext, Constants.DELIVERY, config.isDelivery());
-            if (!TextUtils.isEmpty(config.getPortalId()) && !TextUtils.isEmpty(config.getPropertyId())) {
-                Utils.savePreference(mContext, Constants.PORTAL_ID, config.getPortalId());
-                Utils.savePreference(mContext, Constants.PROPERTY_ID, config.getPropertyId());
-            } else {
-                Log.e(TAG, "PLEASE CREATE PORTALID, PROPERTYID VALUE");
-            }
-        }
-    }
-
-
-    private boolean hasPermissions(Context context, String... permissions) {
-        if (context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
 }

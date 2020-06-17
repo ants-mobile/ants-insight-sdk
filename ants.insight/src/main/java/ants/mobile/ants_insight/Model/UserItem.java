@@ -17,8 +17,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
-import adx.Utils;
-import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.adx.Utils;
+import ants.mobile.ants_insight.InsightSharedPref;
+
+import static ants.mobile.ants_insight.Constants.Constants.PREF_KEY_ONE_SIGNAL_ID;
 
 public class UserItem {
     private String userName;
@@ -49,11 +51,6 @@ public class UserItem {
         this.userDescription = userDescription;
     }
 
-
-    public UserItem() {
-    }
-
-
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     JSONObject getUserInfo(Context mContext) {
         JSONObject param = new JSONObject();
@@ -68,7 +65,7 @@ public class UserItem {
 
         try {
             param.put("type", "lead");
-            param.put("onesignal_id", Utils.getSharedPreValue(mContext, Constants.KEY_ONE_SIGNAL_ID));
+            param.put("one_signal_id", InsightSharedPref.getStringValue(PREF_KEY_ONE_SIGNAL_ID));
 
             if (!TextUtils.isEmpty(config.getIdentifyId().getKeyName())) {
                 switch (config.getIdentifyId().getKeyName()) {

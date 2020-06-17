@@ -31,14 +31,11 @@ public class Campaign {
         try {
             if (!TextUtils.isEmpty(content))
                 jsonObject.put("content", content);
-
             if (!TextUtils.isEmpty(medium))
                 jsonObject.put("medium", medium);
-
             if (!TextUtils.isEmpty(name))
                 jsonObject.put("name", name);
-
-            if (!TextUtils.isEmpty(term))
+            if (!TextUtils.isEmpty("term"))
                 jsonObject.put("term", term);
 
         } catch (JSONException e) {
@@ -66,5 +63,6 @@ public class Campaign {
     public void setTerm(String term) {
         this.term = term;
     }
+
 
 }

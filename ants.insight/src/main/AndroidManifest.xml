@@ -8,12 +8,6 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH" />
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-    <uses-permission
-        android:name="android.permission.INTERNAL_SYSTEM_WINDOW"
-        tools:ignore="ProtectedPermissions" />
 
-    <application
-        android:usesCleartextTraffic="true" />
-
+    <application android:usesCleartextTraffic="true" />
 </manifest>

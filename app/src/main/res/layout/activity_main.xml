@@ -4,15 +4,27 @@
     android:id="@+id/root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="@color/gray"
     android:orientation="vertical"
     android:theme="@style/AppTheme.NoActionBar"
     tools:context="ants.mobile.insight.MainActivity">
+
+    <Button
+        android:id="@+id/btn_click_me"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:background="@drawable/button_selector"
+        android:layout_marginTop="100dp"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:text="Click me" />
 
     <TextView
         android:id="@+id/btn_go_to_home_activity"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_show_ads"
         android:layout_gravity="center"
         android:layout_marginTop="100dp"
         android:gravity="center"
@@ -22,6 +34,7 @@
         android:id="@+id/btn_show_ads"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_click_me"
         android:layout_gravity="center"
         android:layout_marginTop="40dp"
         android:gravity="center"

@@ -4,10 +4,12 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Looper;
+import android.provider.Settings;
 
 import androidx.core.app.ActivityCompat;
 
@@ -17,36 +19,26 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 
-import adx.Utils;
 import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.InsightSharedPref;
 
 public class CurrentLocation {
     private Activity activity;
     private FusedLocationProviderClient mFusedLocationClient;
     private Context mContext;
 
-    public CurrentLocation(Activity activity) {
-        if (activity != null) {
-            this.mContext = activity;
-            this.activity = Utils.getActivity(mContext);
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
-        }
-    }
-
     private boolean checkPermissions() {
-        return ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+        return ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(activity.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     private void requestPermissions() {
-        if (activity != null) {
-            int PERMISSION_ID = 44;
-            ActivityCompat.requestPermissions(
-                    activity,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSION_ID
-            );
-        }
+        int PERMISSION_ID = 44;
+        ActivityCompat.requestPermissions(
+                activity,
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                PERMISSION_ID
+        );
     }
 
     private boolean isLocationEnabled() {
@@ -59,7 +51,7 @@ public class CurrentLocation {
 
     @SuppressLint("MissingPermission")
     public void getAndSaveLastLocation() {
-        if (checkPermissions() && activity != null) {
+        if (checkPermissions()) {
             if (isLocationEnabled()) {
                 mFusedLocationClient.getLastLocation().addOnCompleteListener(
                         task -> {
@@ -67,11 +59,15 @@ public class CurrentLocation {
                             if (location == null) {
                                 requestNewLocationData();
                             } else {
-                                Utils.savePreference(mContext, Constants.CURRENT_LONGITUDE, String.valueOf(location.getLongitude()));
-                                Utils.savePreference(mContext, Constants.CURRENT_LATITUDE, String.valueOf(location.getLatitude()));
+                                InsightSharedPref.savePreference(Constants.PREF_CURRENT_LONGITUDE, String.valueOf(location.getLongitude()));
+                                InsightSharedPref.savePreference(Constants.PREF_CURRENT_LATITUDE, String.valueOf(location.getLatitude()));
                             }
                         }
                 );
+            } else {
+
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                activity.startActivity(intent);
             }
         } else {
             requestPermissions();
@@ -92,15 +88,35 @@ public class CurrentLocation {
                 mLocationRequest, mLocationCallback,
                 Looper.myLooper()
         );
+
     }
 
     private LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             Location mLastLocation = locationResult.getLastLocation();
-            Utils.savePreference(mContext, Constants.CURRENT_LONGITUDE, String.valueOf(mLastLocation.getLongitude()));
-            Utils.savePreference(mContext, Constants.CURRENT_LATITUDE, String.valueOf(mLastLocation.getLatitude()));
+            InsightSharedPref.savePreference(Constants.PREF_CURRENT_LONGITUDE, String.valueOf(mLastLocation.getLongitude()));
+            InsightSharedPref.savePreference(Constants.PREF_CURRENT_LATITUDE, String.valueOf(mLastLocation.getLatitude()));
         }
     };
 
+    public static class Builder {
+        private Activity mActivity;
+
+        public Builder activity(Activity activity) {
+            this.mActivity = activity;
+            return this;
+        }
+
+        public CurrentLocation build() {
+            return new CurrentLocation(this);
+        }
+
+    }
+
+    private CurrentLocation(Builder builder) {
+        activity = builder.mActivity;
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+        mContext = activity.getApplicationContext();
+    }
 }

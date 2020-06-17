@@ -1,9 +1,7 @@
 package ants.mobile.ants_insight;
-
-import android.os.Build;
 import android.util.Log;
 
-import com.google.gson.JsonObject;
+import androidx.multidex.BuildConfig;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -30,6 +28,5 @@ public class CustomApiCallBack<R> implements Observer<R> {
 
     @Override
     public void onComplete() {
-
     }
 }

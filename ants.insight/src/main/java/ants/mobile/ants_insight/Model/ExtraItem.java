@@ -15,33 +15,7 @@ public class ExtraItem {
     private String srcSearchTerm;
     private List<Other> others;
 
-    public ExtraItem() {
-    }
-
-    public ExtraItem(String orderId, Number revenue, String promotionCode, Number discountAmount) {
-        this.orderId = orderId;
-        this.revenue = revenue;
-        this.promotionCode = promotionCode;
-        this.discountAmount = discountAmount;
-    }
-
-    public ExtraItem(String orderId, Number revenue, String promotionCode, Number discountAmount, Number tax, Number deliveryCost, String srcSearchTerm) {
-        this.orderId = orderId;
-        this.revenue = revenue;
-        this.promotionCode = promotionCode;
-        this.discountAmount = discountAmount;
-        this.tax = tax;
-        this.deliveryCost = deliveryCost;
-        this.srcSearchTerm = srcSearchTerm;
-    }
-
-    public ExtraItem(String orderId, Number revenue, String promotionCode) {
-        this.orderId = orderId;
-        this.revenue = revenue;
-        this.promotionCode = promotionCode;
-    }
-
-    public JSONObject getExtraData() {
+    JSONObject getExtraData() {
         JSONObject jsonObject = new JSONObject();
         try {
             jsonObject.put("order_id", orderId);
@@ -64,67 +38,75 @@ public class ExtraItem {
         return jsonObject;
     }
 
-    public String getOrderId() {
-        return orderId;
+    public static class Builder {
+
+        private String orderId;
+        private Number revenue;
+        private String promotionCode;
+        private Number discountAmount;
+        private Number tax;
+        private Number deliveryCost;
+        private String srcSearchTerm;
+        private List<Other> others;
+
+        public Builder() {
+        }
+
+        public Builder orderId(String orderId) {
+            this.orderId = orderId;
+            return this;
+        }
+
+        public Builder revenue(Number revenue) {
+            this.revenue = revenue;
+            return this;
+        }
+
+        public Builder discountAmount(Number discountAmount) {
+            this.discountAmount = discountAmount;
+            return this;
+        }
+
+        public Builder srcSearchTerm(String srcSearchTerm) {
+            this.srcSearchTerm = srcSearchTerm;
+            return this;
+        }
+
+        public Builder promotionCode(String promotionCode) {
+            this.promotionCode = promotionCode;
+            return this;
+        }
+
+        public Builder tax(Number tax) {
+            this.tax = tax;
+            return this;
+        }
+
+        public Builder deliveryCost(Number deliveryCost) {
+            this.deliveryCost = deliveryCost;
+            return this;
+        }
+
+        public Builder otherList(List<Other> otherList) {
+            this.others = otherList;
+            return this;
+        }
+
+
+        public ExtraItem build() {
+            return new ExtraItem(this);
+        }
+
     }
 
-    public void setOrderId(String orderId) {
-        this.orderId = orderId;
-    }
-
-    public Number getRevenue() {
-        return revenue;
-    }
-
-    public void setRevenue(Number revenue) {
-        this.revenue = revenue;
-    }
-
-    public String getPromotionCode() {
-        return promotionCode;
-    }
-
-    public void setPromotionCode(String promotionCode) {
-        this.promotionCode = promotionCode;
-    }
-
-    public Number getDiscountAmount() {
-        return discountAmount;
-    }
-
-    public void setDiscountAmount(Number discountAmount) {
-        this.discountAmount = discountAmount;
-    }
-
-    public Number getTax() {
-        return tax;
-    }
-
-    public void setTax(Number tax) {
-        this.tax = tax;
-    }
-
-    public Number getDeliveryCost() {
-        return deliveryCost;
-    }
-
-    public void setDeliveryCost(Number deliveryCost) {
-        this.deliveryCost = deliveryCost;
-    }
-
-    public String getSrcSearchTerm() {
-        return srcSearchTerm;
-    }
-
-    public void setSrcSearchTerm(String srcSearchTerm) {
-        this.srcSearchTerm = srcSearchTerm;
-    }
-
-    public List<Other> getOthers() {
-        return others;
-    }
-
-    public void setOthers(List<Other> others) {
-        this.others = others;
+    private ExtraItem(Builder builder) {
+        orderId = builder.orderId;
+        revenue = builder.revenue;
+        promotionCode = builder.promotionCode;
+        discountAmount = builder.discountAmount;
+        tax = builder.tax;
+        deliveryCost = builder.deliveryCost;
+        srcSearchTerm = builder.srcSearchTerm;
+        others = builder.others;
     }
 }

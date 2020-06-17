@@ -18,8 +18,6 @@ import android.util.DisplayMetrics;
 import android.view.WindowManager;
 import android.webkit.WebView;
 
-import androidx.multidex.BuildConfig;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -32,9 +30,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
-import adx.Utils;
-
+import ants.mobile.ants_insight.BuildConfig;
 import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.InsightSharedPref;
 
 import static android.content.Context.CONNECTIVITY_SERVICE;
 import static android.content.Context.WIFI_SERVICE;
@@ -142,7 +140,7 @@ public class ContextModel {
 
     }
 
-    private class SdkInfo {
+    private static class SdkInfo {
 
         private SdkInfo() {
         }
@@ -161,7 +159,7 @@ public class ContextModel {
 
     }
 
-    public class DeviceInfo {
+    public static class DeviceInfo {
 
         private Context mContext;
 
@@ -338,8 +336,8 @@ public class ContextModel {
 
     private JSONObject getLocation() {
         JSONObject param = new JSONObject();
-        String latitude = Utils.getSharedPreValue(mContext, Constants.CURRENT_LATITUDE);
-        String longitude = Utils.getSharedPreValue(mContext, Constants.CURRENT_LONGITUDE);
+        String latitude = InsightSharedPref.getStringValue(Constants.PREF_CURRENT_LATITUDE);
+        String longitude = InsightSharedPref.getStringValue(Constants.PREF_CURRENT_LONGITUDE);
         if (!TextUtils.isEmpty(latitude) || !TextUtils.isEmpty(longitude)) {
             Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
             try {
