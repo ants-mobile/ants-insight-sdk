@@ -17,7 +17,7 @@ public class Event {
     public static final String CLICK = "click";
 
     //User viewed a product details
-    public static final String VIEW = "view";
+    public static final String VIEW_PRODUCT_DETAIL = "view";
 
     //User added a product to their shopping cart
     public static final String ADD_TO_CART = "add_to_cart";
@@ -56,7 +56,7 @@ public class Event {
     public static List<String> actionListHasCategoryProduct() {
         List<String> actionEvent = new ArrayList<>();
         actionEvent.add(CLICK);
-        actionEvent.add(VIEW);
+        actionEvent.add(VIEW_PRODUCT_DETAIL);
         actionEvent.add(ADD_TO_CART);
         actionEvent.add(REMOVE_CART);
         actionEvent.add(VIEW_CART);

@@ -21,6 +21,9 @@ public class ApiClient {
     private static volatile InsightApiDetail mInsightServiceApi = null;
     private static volatile FacebookApiDetail mFbApiDetail = null;
     private static volatile DeliveryApiDetail mDeliveryApiDetail = null;
+    private static volatile GoogleTrackingAPI mGoogleTrackingAPI = null;
+    private static final String GOOGLE_TRACKING_URL = "http://www.googleadservices.com/";
+    private static final String FACEBOOK_TRACKING_URL = "https://graph.facebook.com/";
 
     public static InsightApiDetail getInsightInstance() {
         if (mInsightServiceApi == null) {
@@ -41,6 +44,13 @@ public class ApiClient {
             mFbApiDetail = createFromFacebook();
         }
         return mFbApiDetail;
+    }
+
+    public static GoogleTrackingAPI getGoogleTrackingInstance() {
+        if (mGoogleTrackingAPI == null) {
+            mGoogleTrackingAPI = createFromGoogle();
+        }
+        return mGoogleTrackingAPI;
     }
 
     private static DeliveryApiDetail createFromDelivery() {
@@ -88,7 +98,6 @@ public class ApiClient {
     }
 
     private static FacebookApiDetail createFromFacebook() {
-        final String BASE_URL = "https://graph.facebook.com/";
 
         Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
         RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();
@@ -96,7 +105,7 @@ public class ApiClient {
         OkHttpClient client = createHttpClient();
 
         Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        retrofitBuilder.baseUrl(BASE_URL);
+        retrofitBuilder.baseUrl(FACEBOOK_TRACKING_URL);
         retrofitBuilder.client(client);
 
         retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gson));
@@ -106,6 +115,26 @@ public class ApiClient {
 
         return retrofit.create(FacebookApiDetail.class);
     }
+
+    private static GoogleTrackingAPI createFromGoogle() {
+
+        Gson gson = new GsonBuilder().serializeNulls().setLenient().create();
+        RxJava2CallAdapterFactory callAdapter = RxJava2CallAdapterFactory.create();
+
+        OkHttpClient client = createHttpClient();
+
+        Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
+        retrofitBuilder.baseUrl(GOOGLE_TRACKING_URL);
+        retrofitBuilder.client(client);
+
+        retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gson));
+        retrofitBuilder.addCallAdapterFactory(callAdapter);
+
+        Retrofit retrofit = retrofitBuilder.build();
+
+        return retrofit.create(GoogleTrackingAPI.class);
+    }
+
 
     private static OkHttpClient createHttpClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();

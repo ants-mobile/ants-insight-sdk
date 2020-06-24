@@ -53,7 +53,7 @@ public class InsightDataRequest {
     @Retention(RetentionPolicy.SOURCE)
     @StringDef({Event.PRODUCT_SEARCH, Event.PRODUCT_LIST_VIEW,
             Event.PRODUCT_LIST_FILTER, Event.CLICK,
-            Event.VIEW, Event.ADD_TO_CART, Event.REMOVE_CART,
+            Event.VIEW_PRODUCT_DETAIL, Event.ADD_TO_CART, Event.REMOVE_CART,
             Event.VIEW_CART, Event.CHECKOUT, Event.PAYMENT,
             Event.PURCHASE, Event.SCREEN_VIEW, Event.IDENTIFY,
             Event.SIGN_OUT, SIGN_IN, Event.IMPRESSION, Event.VIEWABLE, Event.ADX_CLICK})

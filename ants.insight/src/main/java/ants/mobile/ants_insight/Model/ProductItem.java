@@ -205,4 +205,8 @@ public class ProductItem {
         quantity = builder.quantity;
         otherList = builder.otherList;
     }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
 }

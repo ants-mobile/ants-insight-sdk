@@ -25,6 +25,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,6 +34,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ants.mobile.ants_insight.Constants.Constants;
+import ants.mobile.ants_insight.Service.GoogleTracking;
 import ants.mobile.ants_insight.adx.ActivityLifecycleListener;
 import ants.mobile.ants_insight.adx.Campaign;
 import ants.mobile.ants_insight.adx.Utils;
@@ -52,6 +55,11 @@ import ants.mobile.ants_insight.Service.InsightApiDetail;
 import ants.mobile.ants_insight.db.InsightDatabase;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import static ants.mobile.ants_insight.Constants.Constants.PREF_DELIVERY_URL;
 import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_ADD_TO_CART_TOKEN;
@@ -70,8 +78,8 @@ import static ants.mobile.ants_insight.Constants.Constants.MAXIMUM_NUMBER_OF_REQ
 import static ants.mobile.ants_insight.Constants.Constants.PERMISSION_ALL;
 import static ants.mobile.ants_insight.Constants.Constants.PREF_FB_ADD_TO_CART_APP_ID;
 import static ants.mobile.ants_insight.Constants.Constants.PREF_UID;
-import static ants.mobile.ants_insight.Constants.Constants.TO_DELIVERY;
-import static ants.mobile.ants_insight.Constants.Constants.TO_INSIGHT;
+import static ants.mobile.ants_insight.Constants.Constants.DELIVERY;
+import static ants.mobile.ants_insight.Constants.Constants.INSIGHT;
 
 public class Insights {
 
@@ -108,6 +116,7 @@ public class Insights {
             return new Insights(this);
         }
     }
+
     private Insights(Builder builder) {
         mContext = builder.mContext;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
@@ -219,12 +228,12 @@ public class Insights {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     private void callInsightApi(InsightDataRequest dataRequest) {
         paramObject = (JsonObject) JsonParser.parseString(dataRequest.getJSONObjectData().toString());
-        if (insightsValid(TO_INSIGHT)) {
-            isApiDetail.logEvent(getQueryParam(TO_INSIGHT), paramObject);
+        if (insightsValid(INSIGHT)) {
+            isApiDetail.logEvent(getQueryParam(INSIGHT), paramObject);
         }
 
-        if (isDelivery && insightsValid(TO_DELIVERY)) {
-            deliveryApiDetail.logDelivery(getQueryParam(TO_DELIVERY), paramObject)
+        if (isDelivery && insightsValid(DELIVERY)) {
+            deliveryApiDetail.logDelivery(getQueryParam(DELIVERY), paramObject)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribeOn(Schedulers.io())
                     .subscribe(new CustomApiCallBack<DeliveryResponse>() {
@@ -244,8 +253,13 @@ public class Insights {
         // eventName in SDK not matching fb API
 
         if (!TextUtils.isEmpty(getFbEventName(dataRequest.getEventAction()))) {
-            FacebookMarketing fb = new FacebookMarketing.Builder().insightEventName(dataRequest.getEventAction())
+            FacebookEvents fb = new FacebookEvents.Builder().insightEventName(dataRequest.getEventAction())
                     .setProductList(dataRequest.getProductItemList()).build();
+
+            GoogleTracking googleTracking = new GoogleTracking.Builder().insightEventName(dataRequest.getEventAction())
+                    .setProductList(dataRequest.getProductItemList()).build();
+
+            googleTracking.googleTrackingEvent();
             fb.callApiFacebook();
         }
     }
@@ -283,12 +297,12 @@ public class Insights {
     private Map<String, String> getQueryParam(int type) {
         Map<String, String> param = new HashMap<>();
         switch (type) {
-            case TO_DELIVERY:
+            case DELIVERY:
                 param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
                 param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
                 param.put("resp_type", "json");
                 break;
-            case TO_INSIGHT:
+            case INSIGHT:
                 param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
                 param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
                 param.put("format", "json");
@@ -311,7 +325,7 @@ public class Insights {
             case Event.PAYMENT:
                 fbEventName = "fb_mobile_add_payment_info";
                 break;
-            case Event.VIEW:
+            case Event.VIEW_PRODUCT_DETAIL:
                 fbEventName = "fb_mobile_content_view";
                 break;
             case Event.PRODUCT_SEARCH:
@@ -357,6 +371,12 @@ public class Insights {
         InsightSharedPref.savePreference(PREF_FB_CHECKOUT_APP_ID, config.getFbCheckOutAppId());
         InsightSharedPref.savePreference(PREF_FB_PURCHASE_APP_ID, config.getFbPurchaseAppId());
         InsightSharedPref.savePreference(PREF_FB_VIEW_PRODUCT_APP_ID, config.getFbViewProductAppId());
+
+        InsightSharedPref.savePreference(Constants.PREF_GG_DEV_TOKEN, config.getDevToken());
+        InsightSharedPref.savePreference(Constants.PREF_GG_VIEW_PRODUCT_LINK_ID, config.getGgViewProductLinkId());
+        InsightSharedPref.savePreference(Constants.PREF_GG_VIEW_LIST_LINK_ID, config.getGgViewListLinkId());
+        InsightSharedPref.savePreference(Constants.PREF_GG_PURCHASE_LINK_ID, config.getGgPurchaseLinkId());
+        InsightSharedPref.savePreference(Constants.PREF_GG_ADD_TO_CART_LINK_ID, config.getGgAddToCartLinkId());
     }
 
     private static boolean validConfigFile(InsightConfig config) {
@@ -420,11 +440,11 @@ public class Insights {
 
     private void postDataWhenNetworkAvailable(Object object, int eventType) {
         switch (eventType) {
-            case TO_INSIGHT:
-                isApiDetail.logEvent(getQueryParam(TO_INSIGHT), object);
+            case INSIGHT:
+                isApiDetail.logEvent(getQueryParam(INSIGHT), object);
                 break;
-            case TO_DELIVERY:
-                deliveryApiDetail.logDelivery(getQueryParam(TO_DELIVERY), object);
+            case DELIVERY:
+                deliveryApiDetail.logDelivery(getQueryParam(DELIVERY), object);
                 break;
             default:
                 break;

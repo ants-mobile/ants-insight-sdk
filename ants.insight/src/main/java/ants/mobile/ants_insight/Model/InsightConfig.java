@@ -35,6 +35,16 @@ public class InsightConfig {
     private String fbCheckOutAppId;
     @SerializedName("fb_view_product_token")
     private String fbViewProductToken;
+    @SerializedName("gg_add_to_cart_link_id")
+    private String ggAddToCartLinkId;
+    @SerializedName("gg_purchase_link_id")
+    private String ggPurchaseLinkId;
+    @SerializedName("gg_view_list_link_id")
+    private String ggViewListLinkId;
+    @SerializedName("gg_product_view_link_id")
+    private String ggViewProductLinkId;
+    @SerializedName("gg_dev_token")
+    private String ggDevToken;
 
     List<UserModel> getUserModels() {
         return userModels;
@@ -94,5 +104,25 @@ public class InsightConfig {
 
     public String getFbCheckOutAppId() {
         return fbCheckOutAppId;
+    }
+
+    public String getGgAddToCartLinkId() {
+        return ggAddToCartLinkId;
+    }
+
+    public String getGgPurchaseLinkId() {
+        return ggPurchaseLinkId;
+    }
+
+    public String getGgViewListLinkId() {
+        return ggViewListLinkId;
+    }
+
+    public String getGgViewProductLinkId() {
+        return ggViewProductLinkId;
+    }
+
+    public String getDevToken() {
+        return ggDevToken;
     }
 }
