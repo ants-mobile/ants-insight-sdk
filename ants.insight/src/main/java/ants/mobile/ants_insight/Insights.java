@@ -252,16 +252,16 @@ public class Insights {
         // eventName equals: purchase, add_to_cart, view_product, search, checkout then fb API
         // eventName in SDK not matching fb API
 
-        if (!TextUtils.isEmpty(getFbEventName(dataRequest.getEventAction()))) {
-            FacebookEvents fb = new FacebookEvents.Builder().insightEventName(dataRequest.getEventAction())
-                    .setProductList(dataRequest.getProductItemList()).build();
-
-            GoogleTracking googleTracking = new GoogleTracking.Builder().insightEventName(dataRequest.getEventAction())
-                    .setProductList(dataRequest.getProductItemList()).build();
-
-            googleTracking.googleTrackingEvent();
-            fb.callApiFacebook();
-        }
+//        if (!TextUtils.isEmpty(getFbEventName(dataRequest.getEventAction()))) {
+//            FacebookEvents fb = new FacebookEvents.Builder().insightEventName(dataRequest.getEventAction())
+//                    .setProductList(dataRequest.getProductItemList()).build();
+//
+//            GoogleTracking googleTracking = new GoogleTracking.Builder().insightEventName(dataRequest.getEventAction())
+//                    .setProductList(dataRequest.getProductItemList()).build();
+//
+//            googleTracking.googleTrackingEvent();
+//            fb.callApiFacebook();
+//        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
@@ -296,20 +296,9 @@ public class Insights {
 
     private Map<String, String> getQueryParam(int type) {
         Map<String, String> param = new HashMap<>();
-        switch (type) {
-            case DELIVERY:
-                param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
-                param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
-                param.put("resp_type", "json");
-                break;
-            case INSIGHT:
-                param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
-                param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
-                param.put("format", "json");
-                break;
-            default:
-                break;
-        }
+        param.put("portal_id",  InsightSharedPref.getStringValue(PREF_PORTAL_ID));
+        param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
+        param.put(type == DELIVERY ? "format" : "resp_type", "json");
         return param;
     }
 
