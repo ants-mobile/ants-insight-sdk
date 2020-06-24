@@ -219,7 +219,7 @@ public class InsightDataRequest {
                 category = Constants.USER_IDENTIFY_CATEGORY;
                 break;
             case Event.SCREEN_VIEW:
-                if (getProductItemList().size() == 0)
+                if (productItemList == null)
                     category = Constants.SCREEN_VIEW_CATEGORY;
                 break;
             case Event.PRODUCT_LIST_FILTER:
