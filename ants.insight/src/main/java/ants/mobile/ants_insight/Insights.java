@@ -148,7 +148,10 @@ public class Insights {
 
         isDelivery = InsightSharedPref.getBooleanValue(IS_DELIVERY);
 
-        new CurrentLocation.Builder().activity(Utils.getActivity(mContext)).build().getAndSaveLastLocation();
+        if (Utils.getActivity(mContext) != null) {
+            CurrentLocation location = new CurrentLocation.Builder().activity(Utils.getActivity(mContext)).build();
+            location.getAndSaveLastLocation();
+        }
 
         isApiDetail = ApiClient.getInsightInstance();
         deliveryApiDetail = ApiClient.getDeliveryInstance();
@@ -296,7 +299,7 @@ public class Insights {
 
     private Map<String, String> getQueryParam(int type) {
         Map<String, String> param = new HashMap<>();
-        param.put("portal_id",  InsightSharedPref.getStringValue(PREF_PORTAL_ID));
+        param.put("portal_id", InsightSharedPref.getStringValue(PREF_PORTAL_ID));
         param.put("prop_id", InsightSharedPref.getStringValue(PREF_PROPERTY_ID));
         param.put(type == DELIVERY ? "format" : "resp_type", "json");
         return param;
