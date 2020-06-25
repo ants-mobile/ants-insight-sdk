@@ -69,6 +69,7 @@ public class InsightDataRequest {
         private String eventActionCustom;
         private String eventCategoryCustom;
         private Campaign campaign;
+        private boolean isCustomAction = false;
 
         public Builder eventActionCustom(String eventActionCustom) {
             this.eventActionCustom = eventActionCustom;
@@ -77,6 +78,11 @@ public class InsightDataRequest {
 
         public Builder eventCategoryCustom(String eventCategoryCustom) {
             this.eventCategoryCustom = eventCategoryCustom;
+            return this;
+        }
+
+        public Builder customAction(boolean isCustomAction) {
+            this.isCustomAction = isCustomAction;
             return this;
         }
 
@@ -128,6 +134,7 @@ public class InsightDataRequest {
         this.eventActionCustom = builder.eventActionCustom;
         this.eventCategoryCustom = builder.eventCategoryCustom;
         this.setCampaign(builder.campaign);
+        this.isCustomizeAction = builder.isCustomAction;
     }
 
     /**

@@ -338,6 +338,7 @@ public class Insights {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void resetAnonymousId() {
         InsightDataRequest param = new InsightDataRequest.Builder()
+                .customAction(true)
                 .eventActionCustom("reset_anonymous_id")
                 .eventCategoryCustom("user").build();
 
