@@ -271,7 +271,7 @@ public class InsightDataRequest {
 
     private String getEventCategory() {
         return eventCategory = isCustomizeAction ? getEventCategoryCustom()
-                : this.getEventCategory(eventAction);
+                : this.getEventCategory(getEventAction());
     }
 
     private JSONObject getExtraItem() {

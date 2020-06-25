@@ -64,10 +64,6 @@ public class CurrentLocation {
                             }
                         }
                 );
-            } else {
-
-                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-                activity.startActivity(intent);
             }
         } else {
             requestPermissions();
